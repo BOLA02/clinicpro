@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Calendar, User, Clock } from "lucide-react"; // use lucide-react directly
+import { Calendar, User, Clock } from "lucide-react"; 
 
 const recentActivities = [
   {
