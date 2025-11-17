@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import {Heart} from "lucide-react"
 
 export function Footer() {
   return (
@@ -9,7 +10,9 @@ export function Footer() {
           {/* Brand */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary"></div>
+              <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-primary">
+                <Heart className="w-5 h-5 text-white" />
+              </div>
               <span className="font-semibold text-text-primary">HealthCare</span>
             </div>
             <p className="text-sm text-text-tertiary">

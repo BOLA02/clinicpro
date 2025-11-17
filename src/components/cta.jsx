@@ -21,7 +21,7 @@ export function CTA() {
 
           {/* Outline Button */}
           <button className="px-8 py-4 border-2 border-white text-white rounded-lg font-semibold hover:bg-white/10 transition text-lg backdrop-blur-sm">
-            Call: +1 (555) 123-4567
+            Call: +234 (9068) 603-516
           </button>
         </div>
       </div>

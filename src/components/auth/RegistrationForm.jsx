@@ -1,30 +1,23 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { 
-  Mail, 
-  Lock, 
-  User, 
-  Eye, 
-  EyeOff, 
-  ArrowRight 
-} from "lucide-react";
+import { supabase } from "../../lib/supabaseClient";
+import { Mail, Lock, User, Eye, EyeOff, ArrowRight } from "lucide-react";
 
-// Custom Input Component (replaces shadcn Input)
 function Input({ className = "", icon: Icon, showPasswordToggle, ...props }) {
   return (
     <div className="relative">
       {Icon && (
-        <Icon className="absolute left-3 top-3 w-5 h-5 text-text-tertiary pointer-events-none" />
+        <Icon className="absolute left-3 top-3 w-5 h-5 text-gray-400 pointer-events-none" />
       )}
       <input
-        className={`w-full h-11 pl-10 pr-10 border border-border rounded-md bg-background text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary transition ${className}`}
+        className={`w-full h-11 pl-10 pr-10 border border-gray-300 rounded-md bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${className}`}
         {...props}
       />
       {showPasswordToggle && (
         <button
           type="button"
           onClick={showPasswordToggle.onToggle}
-          className="absolute right-3 top-3 text-text-tertiary hover:text-text-primary transition"
+          className="absolute right-3 top-3 text-gray-400 hover:text-gray-700 transition"
         >
           {showPasswordToggle.show ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
         </button>
@@ -33,12 +26,11 @@ function Input({ className = "", icon: Icon, showPasswordToggle, ...props }) {
   );
 }
 
-// Custom Button Component
 function Button({ children, disabled, className = "", ...props }) {
   return (
     <button
       disabled={disabled}
-      className={`w-full h-11 flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-md transition-all disabled:opacity-50 disabled:cursor-not-allowed group ${className}`}
+      className={`w-full h-11 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-all disabled:opacity-50 disabled:cursor-not-allowed group ${className}`}
       {...props}
     >
       {children}
@@ -58,29 +50,47 @@ export function RegistrationForm() {
     role: "patient",
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (formData.password !== formData.confirmPassword) {
       alert("Passwords do not match");
       return;
     }
+
     setIsLoading(true);
-    setTimeout(() => {
-      window.location.href = "/dashboard";
-    }, 1000);
+
+    const { data, error } = await supabase.auth.signUp({
+      email: formData.email,
+      password: formData.password,
+      options: {
+        data: {
+          full_name: formData.fullName,
+          role: formData.role,
+        },
+      },
+    });
+
+    setIsLoading(false);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    alert("Registration successful! Check your email to verify your account.");
+    window.location.href = "/login";
   };
 
   return (
     <div className="w-full max-w-md">
-      <div className="bg-surface border border-border rounded-lg shadow-lg p-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-text-primary mb-2">Create Account</h1>
-          <p className="text-text-tertiary">Join our clinic management system</p>
+      <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-8">
+        <div className="mb-8 text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Create Account</h1>
+          <p className="text-gray-500">Join our clinic management system</p>
         </div>
 
-        {/* Role Tabs */}
-        <div className="flex gap-3 mb-8 bg-surface-hover p-1 rounded-lg">
+        <div className="flex gap-3 mb-8 bg-gray-100 p-1 rounded-lg">
           {["patient", "staff"].map((tab) => (
             <button
               key={tab}
@@ -90,8 +100,8 @@ export function RegistrationForm() {
               }}
               className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${
                 activeTab === tab
-                  ? "bg-primary text-white shadow-md"
-                  : "text-text-tertiary hover:text-text-primary"
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "text-gray-500 hover:text-gray-900"
               }`}
             >
               {tab === "patient" ? "Patient" : "Staff"}
@@ -99,74 +109,83 @@ export function RegistrationForm() {
           ))}
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Full Name */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-text-primary">Full Name</label>
-            <Input
-              type="text"
-              placeholder="John Doe"
-              icon={User}
-              value={formData.fullName}
-              onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-            />
-          </div>
+          <Input
+            type="text"
+            placeholder="Full Name"
+            icon={User}
+            value={formData.fullName}
+            onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+          />
+          <Input
+            type="email"
+            placeholder="Email"
+            icon={Mail}
+            value={formData.email}
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          />
+          <Input
+            type={showPassword ? "text" : "password"}
+            placeholder="Password"
+            icon={Lock}
+            showPasswordToggle={{
+              show: showPassword,
+              onToggle: () => setShowPassword(!showPassword),
+            }}
+            value={formData.password}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+          />
+          <Input
+            type={showPassword ? "text" : "password"}
+            placeholder="Confirm Password"
+            icon={Lock}
+            value={formData.confirmPassword}
+            onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+          />
 
-          {/* Email */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-text-primary">Email Address</label>
-            <Input
-              type="email"
-              placeholder="john@example.com"
-              icon={Mail}
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            />
-          </div>
-
-          {/* Password */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-text-primary">Password</label>
-            <Input
-              type={showPassword ? "text" : "password"}
-              placeholder="••••••••"
-              icon={Lock}
-              showPasswordToggle={{
-                show: showPassword,
-                onToggle: () => setShowPassword(!showPassword),
-              }}
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            />
-          </div>
-
-          {/* Confirm Password */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-text-primary">Confirm Password</label>
-            <Input
-              type={showPassword ? "text" : "password"}
-              placeholder="••••••••"
-              icon={Lock}
-              value={formData.confirmPassword}
-              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-            />
-          </div>
-
-          {/* Submit */}
           <Button type="submit" disabled={isLoading}>
             {isLoading ? "Creating account..." : "Create Account"}
-            {!isLoading && <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />}
+            {!isLoading && (
+              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+            )}
           </Button>
         </form>
 
-        {/* Login Link */}
-        <p className="text-center text-text-tertiary text-sm mt-6">
+        <p className="text-center text-gray-500 text-sm mt-6">
           Already have an account?{" "}
-          <Link to="/login" className="text-primary hover:text-primary-dark font-medium transition">
+          <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium transition">
             Sign in
           </Link>
         </p>
+
+        <div className="flex items-center my-4">
+          <div className="flex-1 h-px bg-gray-200"></div>
+          <span className="px-3 text-sm text-gray-400">or</span>
+          <div className="flex-1 h-px bg-gray-200"></div>
+        </div>
+
+        <Button
+          type="button"
+          onClick={async () => {
+            setIsLoading(true);
+            const { error } = await supabase.auth.signInWithOAuth({
+              provider: "google",
+              options: {
+                redirectTo: "http://localhost:5173/dashboard",
+              },
+            });
+            setIsLoading(false);
+            if (error) alert(error.message);
+          }}
+          className="bg-white border border-gray-300 text-gray-900 hover:bg-gray-100"
+        >
+          <img
+            src="https://www.svgrepo.com/show/475656/google-color.svg"
+            alt="Google"
+            className="w-5 h-5 mr-2"
+          />
+          Continue with Google
+        </Button>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { supabase } from "../../lib/supabaseClient";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
@@ -8,17 +9,62 @@ import { Eye, EyeOff } from "lucide-react";
 export function SettingsForm() {
   const [isEditing, setIsEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({
-    fullName: "Dr. Sarah Johnson",
-    email: "sarah@clinic.com",
+    fullName: "",
+    email: "",
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
 
-  const handleSave = () => {
-    setIsEditing(false);
-    // Handle save logic here
+  // 🔹 Load user info from Supabase
+  useEffect(() => {
+    async function loadUser() {
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+
+      if (error) console.error(error);
+      if (user) {
+        setUser(user);
+        setFormData({
+          fullName: user.user_metadata.full_name || "",
+          email: user.email,
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+      }
+    }
+    loadUser();
+  }, []);
+
+  // 🔹 Save profile changes
+  const handleSave = async () => {
+    try {
+      // Update name and email
+      const { error: updateError } = await supabase.auth.updateUser({
+        email: formData.email,
+        data: { full_name: formData.fullName },
+      });
+
+      if (updateError) throw updateError;
+
+      // Update password (if provided)
+      if (formData.newPassword && formData.newPassword === formData.confirmPassword) {
+        const { error: passError } = await supabase.auth.updateUser({
+          password: formData.newPassword,
+        });
+        if (passError) throw passError;
+      }
+
+      alert("✅ Profile updated successfully!");
+      setIsEditing(false);
+    } catch (err) {
+      alert("❌ " + err.message);
+    }
   };
 
   return (
@@ -54,14 +100,14 @@ export function SettingsForm() {
 
           <div className="space-y-3">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-text-primary">Current Password</label>
+              <label className="block text-sm font-medium text-text-primary">
+                New Password
+              </label>
               <div className="relative">
                 <Input
                   type={showPassword ? "text" : "password"}
-                  value={formData.currentPassword}
-                  onChange={(e) =>
-                    setFormData({ ...formData, currentPassword: e.target.value })
-                  }
+                  value={formData.newPassword}
+                  onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
                   placeholder="••••••••"
                   className="pr-10"
                 />
@@ -76,21 +122,15 @@ export function SettingsForm() {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-text-primary">New Password</label>
-              <Input
-                type={showPassword ? "text" : "password"}
-                value={formData.newPassword}
-                onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
-                placeholder="••••••••"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-text-primary">Confirm Password</label>
+              <label className="block text-sm font-medium text-text-primary">
+                Confirm Password
+              </label>
               <Input
                 type={showPassword ? "text" : "password"}
                 value={formData.confirmPassword}
-                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, confirmPassword: e.target.value })
+                }
                 placeholder="••••••••"
               />
             </div>
@@ -127,4 +167,4 @@ export function SettingsForm() {
     </div>
   );
 }
-
+export default SettingsForm;

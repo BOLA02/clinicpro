@@ -8,7 +8,7 @@ export default function AppointmentsPage() {
     <div>
       <h1 className="text-2xl font-bold text-text-primary mb-6">Appointments</h1>
       <button
-        onClick={() => setShowModal(false)}
+        onClick={() => setShowModal(true)}
         className="mb-4 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark"
       >
         Schedule New

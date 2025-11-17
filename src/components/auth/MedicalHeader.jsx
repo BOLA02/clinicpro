@@ -1,8 +1,8 @@
-// Custom Heart Icon (replaces @/components/icons/Heart)
+
 const HeartIcon = () => (
   <svg
     className="w-6 h-6"
-    fill="currentColor"
+    fill="#35a5e9"
     viewBox="0 0 24 24"
     stroke="currentColor"
     strokeWidth={1.5}

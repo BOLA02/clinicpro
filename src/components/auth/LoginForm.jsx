@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
+import { supabase } from "../../lib/supabaseClient";
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -18,11 +19,28 @@ export function LoginForm() {
   const handleSubmit = (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => {
-      // Navigate to dashboard using React Router
-      window.location.href = "/dashboard";
-      setIsLoading(false);
-    }, 1000);
+
+    (async () => {
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        setIsLoading(false);
+
+        if (error) {
+          alert(error.message);
+          return;
+        }
+
+        // Successful sign in — redirect to dashboard
+        window.location.href = "/dashboard";
+      } catch (err) {
+        setIsLoading(false);
+        alert(err.message || "An error occurred while signing in");
+      }
+    })();
   };
 
   return (
@@ -92,13 +110,20 @@ export function LoginForm() {
 
           {/* Submit Button */}
           <Button
-            type="submit"
-            disabled={isLoading}
-            className="w-full h-11 bg-primary hover:bg-primary-dark text-white font-medium group"
-          >
-            {isLoading ? "Signing in..." : "Sign in"}
-            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-          </Button>
+              type="submit"
+              disabled={isLoading}
+              className="w-full h-11 bg-primary hover:bg-primary-dark text-white font-medium group flex items-center justify-center"
+            >
+              {isLoading ? (
+                "Signing in..."
+              ) : (
+                <>
+                  Sign in
+                  <ArrowRight className="w-4 h-4 ml-2 translate-y-[1px] transition-all duration-200 ease-in-out group-hover:translate-x-1" />
+                </>
+              )}
+            </Button>
+
         </form>
 
         {/* Sign Up Link */}
@@ -111,12 +136,40 @@ export function LoginForm() {
             Create one
           </Link>
         </p>
+
+        {/* OAuth Divider */}
+        <div className="flex items-center my-6">
+          <div className="flex-1 h-px bg-border"></div>
+          <span className="px-3 text-sm text-text-tertiary">or</span>
+          <div className="flex-1 h-px bg-border"></div>
+        </div>
+
+        {/* Google Sign In Button */}
+        <Button
+          type="button"
+          onClick={async () => {
+            setIsLoading(true);
+            const { error } = await supabase.auth.signInWithOAuth({
+              provider: "google",
+              options: {
+                redirectTo: `${window.location.origin}/dashboard`,
+              },
+            });
+            setIsLoading(false);
+            if (error) alert(error.message);
+          }}
+          className="w-full h-11 bg-white border border-gray-300 text-gray-900 hover:bg-gray-100"
+        >
+          <img
+            src="https://www.svgrepo.com/show/475656/google-color.svg"
+            alt="Google"
+            className="w-5 h-5 mr-2"
+          />
+          Sign in with Google
+        </Button>
       </div>
 
-      {/* Demo Credentials Info */}
-      <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-center text-sm text-text-secondary">
-        Demo: Use any email to test the login flow
-      </div>
+      
     </div>
   );
 }
