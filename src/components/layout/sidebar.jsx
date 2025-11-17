@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import {
   LayoutDashboard,
   Users,
@@ -23,26 +23,33 @@ const menuItems = [
 ];
 
 export function Sidebar({ open, onToggle }) {
-  const location = useLocation();
-  const pathname = location.pathname;
-  const { role } = useAuth();
+  const { role, setUser } = useAuth();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
 
-  // Filter menu items based on role
+  // Listen for Supabase auth changes
+  useEffect(() => {
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+    });
+
+    return () => listener.subscription.unsubscribe();
+  }, [setUser]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);        
+    navigate("/login");   
+  };
+
   const visibleItems = menuItems.filter((item) => {
     if (!item.allowedRoles) return true;
     return item.allowedRoles.includes(role);
   });
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.href = "/";
-  };
-
   return (
     <aside
-      className={`${
-        open ? "w-64" : "w-20"
-      } hidden md:flex transition-all duration-300 bg-sidebar border-r border-sidebar-border flex flex-col`}
+      className={`${open ? "w-64" : "w-20"} hidden md:flex transition-all duration-300 bg-sidebar border-r border-sidebar-border flex flex-col`}
     >
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
@@ -62,11 +69,11 @@ export function Sidebar({ open, onToggle }) {
         </button>
       </div>
 
-      {/* Navigation Menu */}
+      {/* Navigation */}
       <nav className="flex-1 py-6 px-4 space-y-2">
         {visibleItems.map((item) => {
-          const isActive = pathname === item.href;
           const Icon = item.icon;
+          const isActive = pathname === item.href;
 
           return (
             <Link
@@ -89,7 +96,7 @@ export function Sidebar({ open, onToggle }) {
       <div className="p-4 border-t border-sidebar-border">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-3 text-sidebar-foreground hover:bg-[#0ea5e9] hover:bg-opacity-10 rounded-lg transition-colors group"
+          className="w-full flex items-center gap-3 px-4 py-3 text-sidebar-foreground hover:bg-[#0ea5e9] hover:bg-opacity-10 rounded-lg transition-colors"
         >
           <LogOut className="w-5 h-5 flex-shrink-0" />
           {open && <span className="text-sm font-medium">Logout</span>}

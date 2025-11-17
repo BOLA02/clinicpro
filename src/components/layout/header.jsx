@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Menu, Search, Bell, Settings, LogOut, User } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
@@ -73,7 +73,7 @@ export function Header({ onMenuClick }) {
             onClick={() => setShowProfileMenu(!showProfileMenu)}
             className="flex items-center gap-2 text-text-primary hover:bg-surface-hover px-3 py-2 rounded-lg transition-colors"
           >
-            {/* ✅ If user has image (e.g. Google) show it, else initials */}
+            {/*  If user has image (e.g. Google) show it, else initials */}
             {user?.user_metadata?.avatar_url ? (
               <img
                 src={user.user_metadata.avatar_url}

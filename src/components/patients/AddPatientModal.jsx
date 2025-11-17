@@ -10,16 +10,17 @@ export function AddPatientModal({ onClose, onPatientAdded }) {
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
-    dateOfBirth: "",
+    dob: "",
     gender: "",
-    contact: "",
+   phone_number: "",
     address: "",
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
+    const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.fullName || !formData.email) {
+    // Ensure essential fields for both tables are present
+    if (!formData.fullName || !formData.email || !formData.phone_number || !formData.dob || !formData.gender) {
       alert("Please fill in all required fields");
       return;
     }
@@ -27,30 +28,35 @@ export function AddPatientModal({ onClose, onPatientAdded }) {
     setIsLoading(true);
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      // 1️⃣ Insert into the 'users' table first
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .insert()
+        .select(); // Returns the newly created user record
 
-      const { data, error } = await supabase
+      if (userError) throw userError;
+
+      const newUserId = userData[0].id;
+
+      // 2️⃣ Insert into the 'patients' table, linking the records using the same ID
+      const { data: patientData, error: patientError } = await supabase
         .from("patients")
         .insert([
           {
-            full_name: formData.fullName,
-            email: formData.email,
-            date_of_birth: formData.dateOfBirth,
+            id: newUserId, // ⚡ Use the ID generated from the users table insertion
+            dob: formData.dob,
             gender: formData.gender,
-            contact: formData.contact,
             address: formData.address,
-            created_by: user?.id || null,
           },
         ])
-        .select(); // ⚡ return inserted row
+        .select(); // Returns the newly created patient record
 
-      if (error) throw error;
+      if (patientError) throw patientError;
 
-      // Immediately add the new patient to the table
-      if (onPatientAdded && data[0]) {
-        onPatientAdded(data[0]);
+      // Immediately add the new patient to the table UI
+      if (onPatientAdded && patientData[0]) {
+        // Note: The structure passed to onPatientAdded may need adjustment depending on how PatientsTable expects data.
+        onPatientAdded(patientData[0]); 
       }
 
       alert("✅ Patient added successfully!");
@@ -61,6 +67,7 @@ export function AddPatientModal({ onClose, onPatientAdded }) {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -90,7 +97,7 @@ export function AddPatientModal({ onClose, onPatientAdded }) {
           <Input
             type="date"
             value={formData.dateOfBirth}
-            onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+            onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
           />
           <select
             value={formData.gender}
@@ -105,7 +112,7 @@ export function AddPatientModal({ onClose, onPatientAdded }) {
           <Input
             placeholder="Contact"
             value={formData.contact}
-            onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
+            onChange={(e) => setFormData({ ...formData,phone_number: e.target.value })}
           />
           <Input
             placeholder="Address"

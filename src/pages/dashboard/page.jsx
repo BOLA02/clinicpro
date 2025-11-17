@@ -163,7 +163,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <SummaryCard
           title="Total Patients"
-          value="248"
+          value=".."
           description="Active patients in system"
           icon={<Users className="w-6 h-6" />}
           trend="+12% from last month"
@@ -171,7 +171,7 @@ export default function DashboardPage() {
         />
         <SummaryCard
           title="Appointments Today"
-          value="14"
+          value=".."
           description="Scheduled for today"
           icon={<Calendar className="w-6 h-6" />}
           trend="2 pending confirmation"
@@ -179,7 +179,7 @@ export default function DashboardPage() {
         />
         <SummaryCard
           title="Doctors on Duty"
-          value="8"
+          value=".."
           description="Available now"
           icon={<Stethoscope className="w-6 h-6" />}
           trend="All stations staffed"

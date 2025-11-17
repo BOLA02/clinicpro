@@ -42,6 +42,7 @@ export function RegistrationForm() {
   const [activeTab, setActiveTab] = useState("patient");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -60,25 +61,56 @@ export function RegistrationForm() {
 
     setIsLoading(true);
 
+    // STEP 1: Register user with Supabase Auth
     const { data, error } = await supabase.auth.signUp({
       email: formData.email,
       password: formData.password,
       options: {
         data: {
           full_name: formData.fullName,
-          role: formData.role,
+          role: formData.role, // stored as user_metadata
         },
       },
     });
 
-    setIsLoading(false);
-
     if (error) {
+      setIsLoading(false);
       alert(error.message);
       return;
     }
 
-    alert("Registration successful! Check your email to verify your account.");
+    const user = data?.user;
+
+    if (!user) {
+      setIsLoading(false);
+      alert("Failed to create user");
+      return;
+    }
+
+    // STEP 2: Insert into app-level `users` table
+    const { error: profileError } = await supabase.from("users").insert({
+      id: user.id,
+      full_name: formData.fullName,
+      role: formData.role,
+    });
+
+    if (profileError) {
+      setIsLoading(false);
+      console.error(profileError);
+      alert("Failed to save user profile");
+      return;
+    }
+
+    // STEP 3: Insert into role-specific table
+    if (formData.role === "patient") {
+      await supabase.from("patients").insert({ id: user.id });
+    } else if (formData.role === "staff") {
+      await supabase.from("staff").insert({ id: user.id });
+    }
+
+    setIsLoading(false);
+
+    alert("Registration successful! Please check your email to confirm your account.");
     window.location.href = "/login";
   };
 
@@ -90,6 +122,7 @@ export function RegistrationForm() {
           <p className="text-gray-500">Join our clinic management system</p>
         </div>
 
+        {/* Role Tabs */}
         <div className="flex gap-3 mb-8 bg-gray-100 p-1 rounded-lg">
           {["patient", "staff"].map((tab) => (
             <button
@@ -109,6 +142,7 @@ export function RegistrationForm() {
           ))}
         </div>
 
+        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
           <Input
             type="text"
@@ -117,6 +151,7 @@ export function RegistrationForm() {
             value={formData.fullName}
             onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
           />
+
           <Input
             type="email"
             placeholder="Email"
@@ -124,6 +159,7 @@ export function RegistrationForm() {
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           />
+
           <Input
             type={showPassword ? "text" : "password"}
             placeholder="Password"
@@ -135,6 +171,7 @@ export function RegistrationForm() {
             value={formData.password}
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
           />
+
           <Input
             type={showPassword ? "text" : "password"}
             placeholder="Confirm Password"
@@ -151,6 +188,7 @@ export function RegistrationForm() {
           </Button>
         </form>
 
+        {/* Sign in link */}
         <p className="text-center text-gray-500 text-sm mt-6">
           Already have an account?{" "}
           <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium transition">
@@ -158,12 +196,14 @@ export function RegistrationForm() {
           </Link>
         </p>
 
+        {/* Divider */}
         <div className="flex items-center my-4">
           <div className="flex-1 h-px bg-gray-200"></div>
           <span className="px-3 text-sm text-gray-400">or</span>
           <div className="flex-1 h-px bg-gray-200"></div>
         </div>
 
+        {/* Google Login */}
         <Button
           type="button"
           onClick={async () => {
