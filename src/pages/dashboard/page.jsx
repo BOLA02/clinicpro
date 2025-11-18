@@ -1,10 +1,11 @@
-"use client"
-import {useState, useEffect} from "react"
-import { SummaryCard } from "../../components/dashboard/summary-card"
-import { RecentActivitySection } from "../../components/dashboard/recent-activity"
-import { Users, Calendar, Stethoscope, Clock, CheckCircle, AlertCircle } from "lucide-react";
+"use client";
+
+import { useState, useEffect } from "react";
+import { SummaryCard } from "../../components/dashboard/summary-card";
+import { RecentActivitySection } from "../../components/dashboard/recent-activity";
+import { Users, Calendar, Stethoscope, Clock, CheckCircle } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import {supabase} from "../../lib/supabaseClient";
+import { supabase } from "../../lib/supabaseClient";
 
 export default function DashboardPage() {
   const [user, setUser] = useState(null);
@@ -12,20 +13,16 @@ export default function DashboardPage() {
   const [loadingAppointments, setLoadingAppointments] = useState(true);
   const { role } = useAuth();
 
-  useEffect(() => {    
+  // Fetch authenticated user
+  useEffect(() => {
     async function fetchUser() {
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
-      if (!error && user) {
-        setUser(user);
-      }
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (!error && user) setUser(user);
     }
 
     fetchUser();
 
-    //  Listen to auth changes login/logout
+    // Listen for auth changes
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) setUser(session.user);
       else setUser(null);
@@ -37,30 +34,50 @@ export default function DashboardPage() {
   // Fetch patient's appointments
   useEffect(() => {
     async function fetchAppointments() {
-      if (role === "patient" && user?.id) {
-        setLoadingAppointments(true);
-        const { data, error } = await supabase
-          .from("appointments")
-          .select("*")
-          .eq("patient_id", user.id)
-          .order("appointment_date", { ascending: false })
-          .limit(5);
+      if (!user?.id || role !== "patient") return;
 
-        if (!error && data) {
-          setUserAppointments(data);
-        }
+      setLoadingAppointments(true);
+
+      // Get patient record
+      const { data: patientData, error: patientError } = await supabase
+        .from("patients")
+        .select("id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (patientError) {
+        console.error("Error fetching patient:", patientError);
         setLoadingAppointments(false);
+        return;
       }
+
+      if (!patientData) {
+        setUserAppointments([]);
+        setLoadingAppointments(false);
+        return;
+      }
+
+      // Fetch appointments for this patient
+      const { data: appointments, error: appointmentsError } = await supabase
+        .from("appointments")
+        .select("*")
+        .eq("patient_id", patientData.id)
+        .order("date", { ascending: false })
+        .limit(5);
+
+      if (appointmentsError) {
+        console.error("Error fetching appointments:", appointmentsError);
+      } else {
+        setUserAppointments(appointments || []);
+      }
+
+      setLoadingAppointments(false);
     }
 
-    if (user?.id) {
-      fetchAppointments();
-    }
+    fetchAppointments();
   }, [user?.id, role]);
 
-  // PATIENT DASHBOARDWould you like me to:
-
-
+  // ---------------- PATIENT DASHBOARD ----------------
   if (role === "patient") {
     return (
       <div className="space-y-8">
@@ -96,7 +113,10 @@ export default function DashboardPage() {
           />
           <SummaryCard
             title="Upcoming"
-            value={userAppointments.filter(a => new Date(a.appointment_date) > new Date()).length}
+            value={userAppointments.filter(a => {
+              const dateTime = new Date(`${a.date}T${a.time}`);
+              return dateTime > new Date();
+            }).length}
             description="Coming appointments"
             icon={<Clock className="w-6 h-6" />}
             trend="Check details below"
@@ -107,17 +127,20 @@ export default function DashboardPage() {
         {/* Recent Appointments */}
         <div className="bg-white border border-gray-200 rounded-lg shadow p-6">
           <h2 className="text-xl font-bold text-text-primary mb-4">Your Recent Appointments</h2>
-          
+
           {loadingAppointments ? (
             <p className="text-text-secondary">Loading appointments...</p>
           ) : userAppointments.length === 0 ? (
-            <p className="text-text-secondary">No appointments yet. <a href="/dashboard/appointments" className="text-blue-600 hover:underline">Schedule one now</a></p>
+            <p className="text-text-secondary">
+              No appointments yet.{" "}
+              <a href="/dashboard/appointments" className="text-blue-600 hover:underline">Schedule one now</a>
+            </p>
           ) : (
             <div className="space-y-3">
               {userAppointments.map((apt) => {
-                const aptDate = new Date(apt.appointment_date);
-                const isUpcoming = aptDate > new Date();
-                
+                const aptDateTime = new Date(`${apt.date}T${apt.time}`);
+                const isUpcoming = aptDateTime > new Date();
+
                 return (
                   <div key={apt.id} className="border border-gray-200 rounded-lg p-4 flex items-start justify-between">
                     <div className="flex-1">
@@ -127,17 +150,19 @@ export default function DashboardPage() {
                         ) : (
                           <CheckCircle className="w-5 h-5 text-green-600" />
                         )}
-                        <h3 className="font-semibold text-text-primary">{apt.title || "Appointment"}</h3>
+                        <h3 className="font-semibold text-text-primary">Appointment</h3>
                       </div>
                       <p className="text-sm text-text-secondary mb-2">{apt.description || "No description"}</p>
                       <div className="flex gap-4 text-sm text-text-secondary">
-                        <span>📅 {aptDate.toLocaleDateString()}</span>
-                        <span>⏰ {aptDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        <span>📅 {aptDateTime.toLocaleDateString()}</span>
+                        <span>⏰ {aptDateTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
                       </div>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      isUpcoming ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"
-                    }`}>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        isUpcoming ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"
+                      }`}
+                    >
                       {isUpcoming ? "Upcoming" : "Past"}
                     </span>
                   </div>
@@ -150,13 +175,12 @@ export default function DashboardPage() {
     );
   }
 
-  // STAFF DASHBOARD (original)
+  // ---------------- STAFF DASHBOARD ----------------
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold text-text-primary mb-2">Dashboard</h1>
-        <p className="text-text-secondary">Welcome back, {user?.user_metadata?.full_name
-          }</p>
+        <p className="text-text-secondary">Welcome back, {user?.user_metadata?.full_name}</p>
       </div>
 
       {/* Summary Cards */}
@@ -190,5 +214,5 @@ export default function DashboardPage() {
       {/* Recent Activity */}
       <RecentActivitySection />
     </div>
-  )
+  );
 }

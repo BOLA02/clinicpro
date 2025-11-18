@@ -21,7 +21,7 @@ const fetchPatients = useCallback(async () => {
   setError(null);
 
   try {
-    // 1️⃣ Check logged-in user
+    // Check logged-in user
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       setError("Not authenticated");

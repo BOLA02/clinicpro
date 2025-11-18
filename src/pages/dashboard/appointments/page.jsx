@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ScheduleAppointmentModal } from "../../../components/appointments/schedule-appointment-modal";
+import { AppointmentsList } from "../../../components/appointments/appointments-list";
 
 export default function AppointmentsPage() {
   const [showModal, setShowModal] = useState(false);
@@ -15,7 +16,7 @@ export default function AppointmentsPage() {
       </button>
 
       {/* Your list here */}
-      <div className="bg-surface p-4 rounded-lg">No appointments yet.</div>
+      <div className="bg-surface p-4 rounded-lg"><AppointmentsList /></div>
 
       <ScheduleAppointmentModal isOpen={showModal} onClose={() => setShowModal(false)} />
     </div>

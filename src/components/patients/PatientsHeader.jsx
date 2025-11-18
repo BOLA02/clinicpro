@@ -4,10 +4,10 @@ import React, { useState } from "react";
 import { Search, Plus, Filter } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { AddPatientModal } from "../../components/patients/AddPatientModal";
+
 
 export function PatientsHeader() {
-  const [showAddModal, setShowAddModal] = useState(false);
+  
   const [searchTerm, setSearchTerm] = useState("");
 
   return (
@@ -33,18 +33,11 @@ export function PatientsHeader() {
             </button>
           </div>
 
-          {/* Add Patient Button */}
-          <Button
-            onClick={() => setShowAddModal(true)}
-            className="h-11 bg-primary hover:bg-primary-dark text-white font-medium flex items-center gap-2 flex-shrink-0"
-          >
-            <Plus className="w-5 h-5" />
-            Add Patient
-          </Button>
+         
         </div>
       </div>
 
-      {showAddModal && <AddPatientModal onClose={() => setShowAddModal(false)} />}
+      
     </>
   );
 }

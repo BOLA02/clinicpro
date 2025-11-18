@@ -1,77 +1,63 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { supabase } from "../../lib/supabaseClient";
 
 export function ScheduleAppointmentModal({ isOpen, onClose }) {
   const [formData, setFormData] = useState({
-    patientEmail: "",
-    patientName: "",
     date: "",
     time: "",
     description: "",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState(null);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error || !user) {
+        alert("You must be logged in to schedule an appointment.");
+        onClose();
+      } else {
+        setUser(user);
+      }
+    };
+
+    if (isOpen) fetchUser();
+  }, [isOpen]);
+
+  if (!isOpen || !user) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      if (!formData.patientEmail || !formData.date || !formData.time) {
+      if (!formData.date || !formData.time) {
         alert("Please fill in all required fields.");
         setIsLoading(false);
         return;
       }
 
-      // Step 1: Check if user exists
-      let { data: user, error: userError } = await supabase
-        .from("users")
-        .select("id")
-        .eq("email", formData.patientEmail)
-        .single();
-
-      if (userError && userError.code !== "PGRST116") {
-        // PGRST116 = no rows found
-        throw userError;
-      }
-
-      // Step 2: If user does not exist, create new user
-      if (!user) {
-        const { data: newUser, error: newUserError } = await supabase
-          .from("users")
-          .insert({
-            email: formData.patientEmail,
-            full_name: formData.patientName || formData.patientEmail,
-            role: "patient",
-          })
-          .select()
-          .single();
-
-        if (newUserError) throw newUserError;
-
-        user = newUser;
-      }
-
-      // Step 3: Check if patient record exists
-      let { data: patient } = await supabase
+      // Step 1: Check if patient record exists
+      let { data: patient, error: patientError } = await supabase
         .from("patients")
         .select("id")
         .eq("user_id", user.id)
         .single();
 
-      // Step 4: If patient does not exist, create it
+      if (patientError && patientError.code !== "PGRST116") {
+        throw patientError;
+      }
+
+      // Step 2: If patient does not exist, create it
       if (!patient) {
         const { data: newPatient, error: newPatientError } = await supabase
           .from("patients")
-          .insert({
-            user_id: user.id,
-          })
+          .insert({ user_id: user.id })
           .select()
           .single();
 
@@ -79,7 +65,7 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
         patient = newPatient;
       }
 
-      // Step 5: Create appointment
+      // Step 3: Create appointment
       const { error: appointmentError } = await supabase
         .from("appointments")
         .insert({
@@ -95,7 +81,7 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
       onClose();
     } catch (err) {
       console.error("Error scheduling appointment:", err.message);
-      alert("❌ " + err.message);
+      alert(err.message);
     } finally {
       setIsLoading(false);
     }
@@ -114,28 +100,6 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Patient Email */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-text-primary">Patient Email</label>
-            <Input
-              type="email"
-              placeholder="Enter patient email"
-              value={formData.patientEmail}
-              onChange={(e) => setFormData({ ...formData, patientEmail: e.target.value })}
-              required
-            />
-          </div>
-
-          {/* Patient Name (optional, for new users) */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-text-primary">Patient Name (optional)</label>
-            <Input
-              placeholder="Full name if new patient"
-              value={formData.patientName}
-              onChange={(e) => setFormData({ ...formData, patientName: e.target.value })}
-            />
-          </div>
-
           {/* Date */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-text-primary">Date</label>

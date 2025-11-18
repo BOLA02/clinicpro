@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
-import { Mail, Lock, User, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff, ArrowRight, ArrowLeft } from "lucide-react";
 
 function Input({ className = "", icon: Icon, showPasswordToggle, ...props }) {
   return (
@@ -42,6 +42,7 @@ export function RegistrationForm() {
   const [activeTab, setActiveTab] = useState("patient");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [step, setStep] = useState(1);
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -49,6 +50,14 @@ export function RegistrationForm() {
     password: "",
     confirmPassword: "",
     role: "patient",
+
+    dob: "",
+    gender: "",
+    address: "",
+
+    position: "",
+    department: "",
+    license_no: "",
   });
 
   const handleSubmit = async (e) => {
@@ -88,11 +97,24 @@ export function RegistrationForm() {
     }
 
     // STEP 2: Insert into app-level `users` table
-    const { error: profileError } = await supabase.from("users").insert({
-      id: user.id,
-      full_name: formData.fullName,
-      role: formData.role,
-    });
+const { error: profileError } = await supabase.from("users").insert({
+  id: user.id,
+  full_name: formData.fullName,
+  email: formData.email,
+  role: formData.role,
+
+  // patient fields
+  dob: formData.dob || null,
+  gender: formData.gender || null,
+  address: formData.address || null,
+
+  // staff fields
+  position: formData.position || null,
+  department: formData.department || null,
+  license_no: formData.license_no || null,
+
+  created_at: new Date().toISOString(),
+});
 
     if (profileError) {
       setIsLoading(false);
@@ -101,12 +123,8 @@ export function RegistrationForm() {
       return;
     }
 
-    // STEP 3: Insert into role-specific table
-    if (formData.role === "patient") {
-      await supabase.from("patients").insert({ id: user.id });
-    } else if (formData.role === "staff") {
-      await supabase.from("staff").insert({ id: user.id });
-    }
+   
+
 
     setIsLoading(false);
 
@@ -143,7 +161,7 @@ export function RegistrationForm() {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
+        {/* <form onSubmit={handleSubmit} className="space-y-5">
           <Input
             type="text"
             placeholder="Full Name"
@@ -186,7 +204,145 @@ export function RegistrationForm() {
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
             )}
           </Button>
-        </form>
+        </form> */}
+
+ {step === 1 && (
+  <form
+    onSubmit={(e) => {
+      e.preventDefault();
+      setStep(2);
+    }}
+    className="space-y-5 mt-6"
+  >
+    <Input
+      type="text"
+      placeholder="Full Name"
+      icon={User}
+      value={formData.fullName}
+      onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+    />
+
+    <Input
+      type="email"
+      placeholder="Email"
+      icon={Mail}
+      value={formData.email}
+      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+    />
+
+    <Input
+      type={showPassword ? "text" : "password"}
+      placeholder="Password"
+      icon={Lock}
+      showPasswordToggle={{
+        show: showPassword,
+        onToggle: () => setShowPassword(!showPassword),
+      }}
+      value={formData.password}
+      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+    />
+
+    <Input
+      type={showPassword ? "text" : "password"}
+      placeholder="Confirm Password"
+      icon={Lock}
+      value={formData.confirmPassword}
+      onChange={(e) =>
+        setFormData({ ...formData, confirmPassword: e.target.value })
+      }
+    />
+
+    <Button type="submit">
+      Continue
+    </Button>
+  </form>
+)}
+
+{step === 2 && formData.role === "patient" && (
+  <form onSubmit={handleSubmit} className="space-y-5">
+    <Input
+      type="date"
+      placeholder="Date of Birth"
+      value={formData.dob}
+      onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
+    />
+
+    <select
+      className="w-full h-11 border rounded-md px-3"
+      value={formData.gender}
+      onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+    >
+      <option value="">Select Gender</option>
+      <option value="male">Male</option>
+      <option value="female">Female</option>
+    </select>
+
+    <Input
+      type="text"
+      placeholder="Address"
+      value={formData.address}
+      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+    />
+
+    <div className="flex gap-2">
+  <Button
+    type="button"
+    className="bg-gray-300 text-gray-800 hover:bg-gray-400"
+    onClick={() => setStep(1)}
+  >
+    <ArrowLeft className="h-4 w-4 mr-2" />
+    Back
+  </Button>
+
+  <Button type="submit" >
+    Create Patient Account
+  </Button>
+</div>
+
+  </form>
+)}
+
+{step === 2 && formData.role === "staff" && (
+  <form onSubmit={handleSubmit} className="space-y-5">
+
+    <Input
+      type="text"
+      placeholder="Position"
+      value={formData.position}
+      onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+    />
+
+    <Input
+      type="text"
+      placeholder="Department"
+      value={formData.department}
+      onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+    />
+
+    <Input
+      type="text"
+      placeholder="License Number"
+      value={formData.license_no}
+      onChange={(e) => setFormData({ ...formData, license_no: e.target.value })}
+    />
+
+    <div className="flex gap-3">
+      <Button
+        type="button"
+        className="bg-gray-300 text-gray-800 hover:bg-gray-400"
+        onClick={() => setStep(1)}
+      >
+        Back
+      </Button>
+
+      <Button type="submit" >
+        Create Staff Account
+      </Button>
+    </div>
+  </form>
+)}
+
+
 
         {/* Sign in link */}
         <p className="text-center text-gray-500 text-sm mt-6">
