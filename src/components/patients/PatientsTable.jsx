@@ -29,7 +29,7 @@ const fetchPatients = useCallback(async () => {
       return;
     }
 
-    // 2️⃣ Verify Staff Role
+    //  Verify Staff Role
     const { data: profile } = await supabase
       .from("users")
       .select("role")
@@ -42,37 +42,60 @@ const fetchPatients = useCallback(async () => {
       return;
     }
 
-    // 3️⃣ Fetch patients + latest appointment + user info
-    const { data, error: patientErr } = await supabase
+    //  Fetch patients (id, user_id, created_at)
+    const { data: patientData, error: patientErr } = await supabase
       .from("patients")
-      .select(`
-        id,
-        dob,
-        gender,
-        address,
-        users (
-          full_name,
-          phone
-        ),
-        appointments (
-          date
-        )
-      `);
+      .select("id, user_id, created_at");
 
     if (patientErr) throw patientErr;
 
-    // 4️⃣ Transform + compute only last appointment
-    const transformed = data.map((p) => {
-      const latestVisit = p.appointments?.length
-        ? p.appointments.sort((a, b) => new Date(b.date) - new Date(a.date))[0].date
+    if (!patientData || patientData.length === 0) {
+      setPatients([]);
+      setLoading(false);
+      return;
+    }
+
+    // Fetch user info for all patients (dob, gender, address stored in users)
+    const userIds = patientData.map((p) => p.user_id);
+    const { data: userData, error: userErr } = await supabase
+      .from("users")
+      .select("id, full_name, email, phone, dob, gender, address")
+      .in("id", userIds);
+
+    if (userErr) throw userErr;
+
+    // Fetch appointments for all patients
+    const patientIds = patientData.map((p) => p.id);
+    const { data: appointments, error: apptErr } = await supabase
+      .from("appointments")
+      .select("patient_id, date");
+
+    if (apptErr) throw apptErr;
+
+    // Build maps for quick lookup
+    const userMap = new Map(userData.map((u) => [u.id, u]));
+    const appointmentsByPatient = new Map();
+    (appointments || []).forEach((apt) => {
+      if (!appointmentsByPatient.has(apt.patient_id)) {
+        appointmentsByPatient.set(apt.patient_id, []);
+      }
+      appointmentsByPatient.get(apt.patient_id).push(apt);
+    });
+
+    //  Transform + compute only last appointment
+    const transformed = patientData.map((p) => {
+      const userInfo = userMap.get(p.user_id) || {};
+      const patientAppts = appointmentsByPatient.get(p.id) || [];
+      const latestVisit = patientAppts.length
+        ? patientAppts.sort((a, b) => new Date(b.date) - new Date(a.date))[0].date
         : null;
 
       return {
         id: p.id,
-        full_name: p.users?.full_name,
-        gender: p.gender,
-        age: calculateAge(p.dob),
-        contact: p.users?.phone,
+        full_name: userInfo.full_name,
+        gender: userInfo.gender,
+        age: calculateAge(userInfo.dob),
+        contact: userInfo.phone || userInfo.email || "-",
         last_visit: latestVisit,
       };
     });

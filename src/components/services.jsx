@@ -23,7 +23,7 @@ const EyeIcon = () => (
   </svg>
 );
 
-const services = [
+export const services = [
   {
     icon: HeartIcon,
     title: "Cardiology",
