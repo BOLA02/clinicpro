@@ -14,7 +14,7 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
     description: "",
     // appointment additions
     service: "",
-    mode: "onsite", // or 'online'
+    mode: "onsite", 
     slot: "",
   });
   const [isLoading, setIsLoading] = useState(false);
