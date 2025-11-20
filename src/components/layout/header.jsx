@@ -96,7 +96,7 @@ export function Header({ onMenuClick }) {
           {showProfileMenu && (
             <div className="absolute right-0 mt-2 w-48 bg-surface border border-border rounded-lg shadow-lg z-50">
               <Link
-                to="/dashboard/profile"
+                to="/dashboard/settings"
                 className="flex items-center gap-3 px-4 py-3 text-text-primary hover:bg-surface-hover transition-colors first:rounded-t-lg"
               >
                 <User className="w-4 h-4" />

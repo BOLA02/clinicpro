@@ -59,7 +59,7 @@ const fetchPatients = useCallback(async () => {
     const userIds = patientData.map((p) => p.user_id);
     const { data: userData, error: userErr } = await supabase
       .from("users")
-      .select("id, full_name, email, phone, dob, gender, address")
+      .select("id, full_name, email, phone, dob, gender, address, role")
       .in("id", userIds);
 
     if (userErr) throw userErr;
@@ -85,6 +85,8 @@ const fetchPatients = useCallback(async () => {
     //  Transform + compute only last appointment
     const transformed = patientData.map((p) => {
       const userInfo = userMap.get(p.user_id) || {};
+      // Skip entries where the linked user is a staff account
+      if (userInfo.role === "staff") return null;
       const patientAppts = appointmentsByPatient.get(p.id) || [];
       const latestVisit = patientAppts.length
         ? patientAppts.sort((a, b) => new Date(b.date) - new Date(a.date))[0].date
@@ -100,14 +102,16 @@ const fetchPatients = useCallback(async () => {
       };
     });
 
-    // Sort by last_visit DESC (null last)
-    transformed.sort((a, b) => {
+    // Remove nulls (staff links) and sort by last_visit DESC (null last)
+    const filtered = transformed.filter(Boolean);
+
+    filtered.sort((a, b) => {
       if (!a.last_visit) return 1;
       if (!b.last_visit) return -1;
       return new Date(b.last_visit) - new Date(a.last_visit);
     });
 
-    setPatients(transformed);
+    setPatients(filtered);
 
   } catch (err) {
     setError(err.message);

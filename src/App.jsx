@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useEffect } from "react";
 import { AgenticChat } from "./components/agentic-chat";
 import LandingPage from "./pages/landing/page";
 import DashboardLayout from "./pages/dashboard/layout";
@@ -9,6 +10,7 @@ import SettingsPage from "./pages/dashboard/settings/page";
 import LoginPage from "./pages/login/page";
 import RegisterPage from "./pages/register/page";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import './App.css'
 
 // Protected route component that checks authentication
@@ -78,11 +80,31 @@ function AppRoutes() {
 }
 
 function App() {
+  // Initialize theme on app load so toggle works globally
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("theme");
+      if (stored === "dark") {
+        document.documentElement.classList.add("dark");
+        return;
+      }
+      if (stored === "light") {
+        document.documentElement.classList.remove("dark");
+        return;
+      }
+
+      const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (prefersDark) document.documentElement.classList.add("dark");
+    } catch (e) {
+      // ignore
+    }
+  }, []);
   return (
     <BrowserRouter>
       <AuthProvider>
-
-        <AppRoutes />
+        <ThemeProvider>
+          <AppRoutes />
+        </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>
   );

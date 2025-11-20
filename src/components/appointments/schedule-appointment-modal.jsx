@@ -7,37 +7,27 @@ import { Input } from "../ui/input";
 import { supabase } from "../../lib/supabaseClient";
 import { services as SERVICES_LIST } from "../services";
 
+const TIMESLOTS = [
+  "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
+  "12:00", "12:30", "13:00", "13:30", "14:00", "14:30",
+  "15:00", "15:30", "16:00", "16:30",
+];
+
 export function ScheduleAppointmentModal({ isOpen, onClose }) {
   const [formData, setFormData] = useState({
     date: "",
-    time: "",
-    description: "",
-    // appointment additions
     service: "",
-    mode: "onsite", 
+    staff_id: "",
+    mode: "onsite",
     slot: "",
+    description: "",
   });
+
   const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState(null);
+  const [availableStaff, setAvailableStaff] = useState([]);
   const [availableSlots, setAvailableSlots] = useState([]);
-  const TIMESLOTS = [
-    "09:00",
-    "09:30",
-    "10:00",
-    "10:30",
-    "11:00",
-    "11:30",
-    "12:00",
-    "12:30",
-    "13:00",
-    "13:30",
-    "14:00",
-    "14:30",
-    "15:00",
-    "15:30",
-    "16:00",
-    "16:30",
-  ];
+  const [bookedSlots, setBookedSlots] = useState([]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -51,31 +41,111 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
     };
 
     if (isOpen) fetchUser();
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
+  // Fetch staff who specialize in the selected service
   useEffect(() => {
-    // when date changes, compute available slots by fetching existing appointments for that date
-    const fetchBooked = async () => {
-      if (!formData.date) return setAvailableSlots(TIMESLOTS);
+    const fetchStaff = async () => {
+      if (!formData.service) {
+        setAvailableStaff([]);
+        setFormData(prev => ({ ...prev, staff_id: "" }));
+        return;
+      }
 
-      const { data: booked, error } = await supabase
-        .from("appointments")
-        .select("time")
-        .eq("date", formData.date);
+      try {
+        const { data: staffList, error } = await supabase
+          .from("staff_specializations")
+          .select("staff_id, users(id, full_name, email)")
+          .eq("service", formData.service);
 
-      if (error) {
-        console.error("Error fetching booked slots:", error);
+        if (error) throw error;
+
+        const uniqueStaff = [];
+        const seen = new Set();
+        staffList?.forEach(s => {
+          if (!seen.has(s.staff_id) && s.users) {
+            seen.add(s.staff_id);
+            uniqueStaff.push({
+              id: s.users.id,
+              name: s.users.full_name,
+              email: s.users.email,
+            });
+          }
+        });
+
+        setAvailableStaff(uniqueStaff);
+      } catch (err) {
+        console.error("Error fetching staff:", err);
+        setAvailableStaff([]);
+      }
+    };
+
+    fetchStaff();
+  }, [formData.service]);
+
+  // Fetch available timeslots based on selected date and staff
+  useEffect(() => {
+    const fetchAvailableSlots = async () => {
+      if (!formData.date) {
         setAvailableSlots(TIMESLOTS);
         return;
       }
 
-      const bookedTimes = (booked || []).map((b) => b.time);
-      const free = TIMESLOTS.filter((t) => !bookedTimes.includes(t));
-      setAvailableSlots(free);
+      try {
+        const appointmentDate = new Date(formData.date);
+        const dayOfWeek = appointmentDate.getDay();
+
+        // Fetch staff availability for this day
+        let staffAvailability = null;
+        if (formData.staff_id) {
+          const { data, error } = await supabase
+            .from("staff_availability")
+            .select("available_slots")
+            .eq("staff_id", formData.staff_id)
+            .eq("day_of_week", dayOfWeek)
+            .single();
+
+          if (error && error.code !== "PGRST116") throw error;
+          staffAvailability = data;
+        }
+
+        // Fetch booked appointments for this date and staff (if selected)
+        let query = supabase
+          .from("appointments")
+          .select("time");
+
+        if (formData.staff_id) {
+          query = query.eq("staff_id", formData.staff_id);
+        }
+
+        const { data: booked, error: bookedErr } = await query
+          .eq("date", formData.date);
+
+        if (bookedErr) throw bookedErr;
+
+        const bookedTimes = (booked || []).map((b) => b.time);
+        setBookedSlots(bookedTimes);
+
+        // Calculate available slots
+        let slots = TIMESLOTS;
+
+        // Filter by staff availability if staff is selected
+        if (staffAvailability?.available_slots) {
+          slots = slots.filter(s => staffAvailability.available_slots.includes(s));
+        }
+
+        // Remove booked slots
+        slots = slots.filter(s => !bookedTimes.includes(s));
+
+        setAvailableSlots(slots);
+      } catch (err) {
+        console.error("Error fetching available slots:", err);
+        setAvailableSlots(TIMESLOTS);
+      }
     };
 
-    fetchBooked();
-  }, [formData.date]);
+    fetchAvailableSlots();
+  }, [formData.date, formData.staff_id]);
 
   if (!isOpen || !user) return null;
 
@@ -85,7 +155,16 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
 
     try {
       if (!formData.date || !formData.slot || !formData.service) {
-        alert("Please fill in date, service and select an available timeslot.");
+        alert("Please fill in date, service, and select an available timeslot.");
+        setIsLoading(false);
+        return;
+      }
+
+      // Check if appointment is in the past
+      const now = new Date();
+      const appointmentDateTime = new Date(`${formData.date}T${formData.slot}:00`);
+      if (appointmentDateTime < now) {
+        alert("Cannot schedule appointment in the past. Please select a future date and time.");
         setIsLoading(false);
         return;
       }
@@ -119,6 +198,7 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
         .select("id")
         .eq("date", formData.date)
         .eq("time", formData.slot)
+        .eq("staff_id", formData.staff_id || null)
         .limit(1);
 
       if (existErr) throw existErr;
@@ -128,7 +208,7 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
         return;
       }
 
-      // Step 4: Create appointment (include service and mode)
+      // Step 4: Create appointment with staff assignment
       const { error: appointmentError } = await supabase
         .from("appointments")
         .insert({
@@ -138,6 +218,7 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
           description: formData.description,
           service: formData.service,
           mode: formData.mode,
+          staff_id: formData.staff_id || null,
         });
 
       if (appointmentError) throw appointmentError;
@@ -172,6 +253,7 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
               type="date"
               value={formData.date}
               onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+              min={new Date().toISOString().split("T")[0]}
               required
             />
           </div>
@@ -191,6 +273,25 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
               ))}
             </select>
           </div>
+
+          {/* Staff */}
+          {formData.service && (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-text-primary">Specialist (Optional)</label>
+              <select
+                className="w-full h-11 border rounded-md px-3"
+                value={formData.staff_id}
+                onChange={(e) => setFormData({ ...formData, staff_id: e.target.value })}
+              >
+                <option value="">Any available specialist</option>
+                {availableStaff.map((staff) => (
+                  <option key={staff.id} value={staff.id}>
+                    {staff.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Mode */}
           <div className="space-y-2">
@@ -229,11 +330,22 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
               required
             >
               <option value="">Select timeslot</option>
-              {TIMESLOTS.map((t) => (
-                <option key={t} value={t} disabled={!availableSlots.includes(t)}>
-                  {t} {availableSlots.includes(t) ? "" : " (booked)"}
-                </option>
-              ))}
+              {TIMESLOTS.map((t) => {
+                const now = new Date();
+                const isToday = formData.date === new Date().toISOString().split("T")[0];
+                const slotTime = new Date(`${formData.date}T${t}:00`);
+                const isPastTime = isToday && slotTime < now;
+                
+                return (
+                  <option 
+                    key={t} 
+                    value={t} 
+                    disabled={isPastTime || !availableSlots.includes(t)}
+                  >
+                    {t} {isPastTime ? " (past)" : bookedSlots.includes(t) ? " (booked)" : availableSlots.includes(t) ? "" : " (unavailable)"}
+                  </option>
+                );
+              })}
             </select>
           </div>
 

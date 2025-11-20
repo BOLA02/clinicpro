@@ -1,22 +1,24 @@
 import { useState } from "react";
 import { ScheduleAppointmentModal } from "../../../components/appointments/schedule-appointment-modal";
-import { AppointmentsList } from "../../../components/appointments/appointments-list";
+import { AppointmentsCalendar } from "../../../components/appointments/appointments-calendar";
 
 export default function AppointmentsPage() {
   const [showModal, setShowModal] = useState(false);
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-text-primary mb-6">Appointments</h1>
-      <button
-        onClick={() => setShowModal(true)}
-        className="mb-4 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark"
-      >
-        Schedule New
-      </button>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-text-primary">Appointments</h1>
+        <button
+          onClick={() => setShowModal(true)}
+          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
+        >
+          Schedule New
+        </button>
+      </div>
 
-      {/* Your list here */}
-      <div className="bg-surface p-4 rounded-lg"><AppointmentsList /></div>
+      {/* Calendar View */}
+      <AppointmentsCalendar />
 
       <ScheduleAppointmentModal isOpen={showModal} onClose={() => setShowModal(false)} />
     </div>
