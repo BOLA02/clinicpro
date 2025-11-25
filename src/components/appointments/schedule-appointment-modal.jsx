@@ -43,7 +43,7 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
     if (isOpen) fetchUser();
   }, [isOpen, onClose]);
 
-  // Fetch staff who specialize in the selected service
+  
   useEffect(() => {
     const fetchStaff = async () => {
       if (!formData.service) {
@@ -83,7 +83,7 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
     fetchStaff();
   }, [formData.service]);
 
-  // Fetch available timeslots based on selected date and staff
+ 
   useEffect(() => {
     const fetchAvailableSlots = async () => {
       if (!formData.date) {
@@ -95,7 +95,6 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
         const appointmentDate = new Date(formData.date);
         const dayOfWeek = appointmentDate.getDay();
 
-        // Fetch staff availability for this day
         let staffAvailability = null;
         if (formData.staff_id) {
           const { data, error } = await supabase
@@ -109,7 +108,7 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
           staffAvailability = data;
         }
 
-        // Fetch booked appointments for this date and staff (if selected)
+
         let query = supabase
           .from("appointments")
           .select("time");
@@ -126,15 +125,14 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
         const bookedTimes = (booked || []).map((b) => b.time);
         setBookedSlots(bookedTimes);
 
-        // Calculate available slots
         let slots = TIMESLOTS;
 
-        // Filter by staff availability if staff is selected
+     
         if (staffAvailability?.available_slots) {
           slots = slots.filter(s => staffAvailability.available_slots.includes(s));
         }
 
-        // Remove booked slots
+      
         slots = slots.filter(s => !bookedTimes.includes(s));
 
         setAvailableSlots(slots);
@@ -160,7 +158,7 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
         return;
       }
 
-      // Check if appointment is in the past
+     
       const now = new Date();
       const appointmentDateTime = new Date(`${formData.date}T${formData.slot}:00`);
       if (appointmentDateTime < now) {
@@ -169,7 +167,6 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
         return;
       }
 
-      // Step 1: Check if patient record exists
       let { data: patient, error: patientError } = await supabase
         .from("patients")
         .select("id")
@@ -180,7 +177,7 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
         throw patientError;
       }
 
-      // Step 2: If patient does not exist, create it
+       
       if (!patient) {
         const { data: newPatient, error: newPatientError } = await supabase
           .from("patients")
@@ -192,7 +189,7 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
         patient = newPatient;
       }
 
-      // Step 3: Double-check timeslot availability server-side
+      
       const { data: existing, error: existErr } = await supabase
         .from("appointments")
         .select("id")
@@ -208,7 +205,7 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
         return;
       }
 
-      // Step 4: Create appointment with staff assignment
+     
       const { error: appointmentError } = await supabase
         .from("appointments")
         .insert({

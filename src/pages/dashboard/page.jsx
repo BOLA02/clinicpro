@@ -7,7 +7,7 @@ import { Users, Calendar, Clock, CheckCircle } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
 import { PatientsTable } from "../../components/patients/PatientsTable";
-import { AppointmentsList } from "../../components/appointments/appointments-list";
+
 
 
 function LatestAppointmentPanel() {
@@ -83,8 +83,8 @@ function LatestAppointmentPanel() {
         </div>
         <p className="text-sm text-text-secondary mb-2">{latest.description || "No description"}</p>
         <div className="flex gap-4 text-sm text-text-secondary">
-          <span>📅 {aptDateTime.toLocaleDateString()}</span>
-          <span>⏰ {aptDateTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+          <span> {aptDateTime.toLocaleDateString()}</span>
+          <span> {aptDateTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
         </div>
         <div className="mt-3 text-sm text-text-secondary">
           <strong>Patient:</strong> {latest.patient?.user?.full_name || "-"} ({latest.patient?.user?.email || "-"})
@@ -111,7 +111,7 @@ export default function DashboardPage() {
   const [totalPatients, setTotalPatients] = useState(null);
   const { role } = useAuth();
 
-  // Fetch authenticated user
+  
   useEffect(() => {
     async function fetchUser() {
       const { data: { user }, error } = await supabase.auth.getUser();
@@ -120,7 +120,6 @@ export default function DashboardPage() {
 
     fetchUser();
 
-    // Listen for auth changes
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) setUser(session.user);
       else setUser(null);
@@ -129,14 +128,13 @@ export default function DashboardPage() {
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  // Fetch patient's appointments
   useEffect(() => {
     async function fetchAppointments() {
       if (!user?.id || role !== "patient") return;
 
       setLoadingAppointments(true);
 
-      // Get patient record
+      
       const { data: patientData, error: patientError } = await supabase
         .from("patients")
         .select("id")
@@ -155,7 +153,7 @@ export default function DashboardPage() {
         return;
       }
 
-      // Fetch appointments for this patient
+      
       const { data: appointments, error: appointmentsError } = await supabase
         .from("appointments")
         .select("*")
@@ -175,7 +173,7 @@ export default function DashboardPage() {
     fetchAppointments();
   }, [user?.id, role]);
 
-  // Fetch staff summary stats (patients count)
+ 
   useEffect(() => {
     const fetchStaffStats = async () => {
       if (role !== "staff") return;

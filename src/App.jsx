@@ -13,7 +13,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import './App.css'
 
-// Protected route component that checks authentication
+
 function ProtectedRoute({ element }) {
   const { user, isLoading } = useAuth();
 
@@ -24,7 +24,6 @@ function ProtectedRoute({ element }) {
   return user ? element : <Navigate to="/login" replace />;
 }
 
-// Role-based route component
 function RoleBasedRoute({ element, allowedRole }) {
   const { user, role, isLoading } = useAuth();
 
@@ -36,7 +35,7 @@ function RoleBasedRoute({ element, allowedRole }) {
     return <Navigate to="/login" replace />;
   }
 
-  // If role doesn't match, redirect to dashboard
+  
   if (role !== allowedRole) {
     return <Navigate to="/dashboard" replace />;
   }
@@ -47,7 +46,7 @@ function RoleBasedRoute({ element, allowedRole }) {
 function AppRoutes() {
   return (
     <Routes>
-      {/* 1. Landing page is the entry point */}
+    
       <Route path="/" element={
         <>
       <AgenticChat />
@@ -55,11 +54,10 @@ function AppRoutes() {
     </>
   } />
 
-      {/* 2. Public auth pages */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
 
-      {/* 3. Protected dashboard */}
+    
       <Route
         path="/dashboard/*"
         element={<ProtectedRoute element={ <>
@@ -73,14 +71,14 @@ function AppRoutes() {
         <Route path="settings" element={<SettingsPage />} />
       </Route>
 
-      {/* Fallback */}
+      
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
 
 function App() {
-  // Initialize theme on app load so toggle works globally
+
   useEffect(() => {
     try {
       const stored = localStorage.getItem("theme");
@@ -96,7 +94,7 @@ function App() {
       const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
       if (prefersDark) document.documentElement.classList.add("dark");
     } catch (e) {
-      // ignore
+      
     }
   }, []);
   return (
