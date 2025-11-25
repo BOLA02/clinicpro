@@ -39,6 +39,7 @@ export function AppointmentsList() {
               service,
               mode,
               description,
+              staff_id,
               patient:patient_id (
                 id,
                 user: user_id (
@@ -64,6 +65,7 @@ export function AppointmentsList() {
               service,
               mode,
               description,
+              staff_id,
               patient:patient_id (
                 id,
                 user: user_id (
@@ -76,7 +78,29 @@ export function AppointmentsList() {
             .order("time", { ascending: true });
 
           if (error) throw error;
-          setAppointments(data || []);
+          
+          // Fetch staff details if appointments have staff_id
+          const staffIds = [...new Set(data?.filter(a => a.staff_id).map(a => a.staff_id))];
+          let staffMap = {};
+          
+          if (staffIds.length > 0) {
+            const { data: staffData, error: staffErr } = await supabase
+              .from("users")
+              .select("id, full_name, email")
+              .in("id", staffIds);
+            
+            if (!staffErr && staffData) {
+              staffMap = Object.fromEntries(staffData.map(s => [s.id, s]));
+            }
+          }
+          
+          // Enrich appointments with staff data
+          const enrichedData = data?.map(appt => ({
+            ...appt,
+            staff: appt.staff_id ? staffMap[appt.staff_id] : null
+          })) || [];
+          
+          setAppointments(enrichedData);
         }
       } catch (err) {
         console.error("Error fetching appointments:", err);
@@ -101,6 +125,11 @@ export function AppointmentsList() {
             <strong>Patient:</strong> {appt.patient.user.full_name} (
             {appt.patient.user.email})
           </p>
+          {appt.staff && (
+            <p>
+              <strong>Assigned Staff:</strong> {appt.staff.full_name} ({appt.staff.email})
+            </p>
+          )}
           <p>
             <strong>Date:</strong> {appt.date} <strong>Time:</strong>{" "}
             {appt.time}

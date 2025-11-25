@@ -3,8 +3,18 @@
 import React from "react";
 import { SettingsForm } from "../../../components/settings/SettingsForm";
 import { ThemeToggle } from "../../../components/settings/ThemeToggle";
+import { StaffSettingsForm } from "../../../components/settings/StaffSettingsForm";
+import { useAuth } from "../../../context/AuthContext";
 
 export default function SettingsPage() {
+  const { role } = useAuth();
+
+  // Staff get special settings page for availability
+  if (role === "staff") {
+    return <StaffSettingsForm />;
+  }
+
+  // Patient settings page
   return (
     <div className="space-y-8 max-w-2xl">
       {/* Page Header */}
