@@ -21,7 +21,7 @@ export function LoginForm() {
   setIsLoading(true);
 
   try {
-    // 1️⃣ Sign in
+    // Sign in
     const { data: authData, error: authError } =
       await supabase.auth.signInWithPassword({
         email: formData.email,
@@ -36,14 +36,14 @@ export function LoginForm() {
 
     const user = authData.user;
 
-    // 2️⃣ Check if user exists in "users" table
+    //  Check if user exists in "users" table
     const { data: existingUser } = await supabase
       .from("users")
       .select("*")
       .eq("id", user.id)
       .single();
 
-    // 3️⃣ Reject login if user table record missing
+    //  Reject login if user table record missing
     if (!existingUser) {
       setIsLoading(false);
 
@@ -58,7 +58,7 @@ export function LoginForm() {
       return;
     }
 
-    // 4️⃣ Redirect (valid user)
+    //  Redirect (valid user)
     setIsLoading(false);
     window.location.href = "/dashboard";
   } catch (err) {

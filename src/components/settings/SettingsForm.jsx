@@ -60,10 +60,10 @@ export function SettingsForm() {
         if (passError) throw passError;
       }
 
-      alert("✅ Profile updated successfully!");
+      alert(" Profile updated successfully!");
       setIsEditing(false);
     } catch (err) {
-      alert("❌ " + err.message);
+      alert( err.message);
     }
   };
 

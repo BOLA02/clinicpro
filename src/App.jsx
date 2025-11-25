@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AgenticChat } from "./components/agentic-chat";
 import LandingPage from "./pages/landing/page";
 import DashboardLayout from "./pages/dashboard/layout";
 import DashboardPage from "./pages/dashboard/page";
@@ -45,7 +46,12 @@ function AppRoutes() {
   return (
     <Routes>
       {/* 1. Landing page is the entry point */}
-      <Route path="/" element={<LandingPage />} />
+      <Route path="/" element={
+        <>
+      <AgenticChat />
+      <LandingPage />
+    </>
+  } />
 
       {/* 2. Public auth pages */}
       <Route path="/login" element={<LoginPage />} />
@@ -54,7 +60,10 @@ function AppRoutes() {
       {/* 3. Protected dashboard */}
       <Route
         path="/dashboard/*"
-        element={<ProtectedRoute element={<DashboardLayout />} />}
+        element={<ProtectedRoute element={ <>
+      <AgenticChat />
+      <DashboardLayout />
+    </>} />}
       >
         <Route index element={<DashboardPage />} />
         <Route path="appointments" element={<AppointmentsPage />} />
@@ -72,6 +81,7 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+
         <AppRoutes />
       </AuthProvider>
     </BrowserRouter>

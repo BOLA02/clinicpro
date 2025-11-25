@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
-import { Mail, Lock, User, Eye, EyeOff, ArrowRight, ArrowLeft } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff, ArrowLeft } from "lucide-react";
 
 function Input({ className = "", icon: Icon, showPasswordToggle, ...props }) {
   return (
@@ -54,6 +54,14 @@ export function RegistrationForm() {
     dob: "",
     gender: "",
     address: "",
+    phone: "",
+
+    // medical record fields
+    includeMedical: false,
+    age: "",
+    blood_group: "",
+    allergies: "",
+    chronic_conditions: "",
 
     position: "",
     department: "",
@@ -102,11 +110,19 @@ const { error: profileError } = await supabase.from("users").insert({
   full_name: formData.fullName,
   email: formData.email,
   role: formData.role,
+  phone: formData.phone || null,
 
   // patient fields
   dob: formData.dob || null,
   gender: formData.gender || null,
   address: formData.address || null,
+
+  // medical record fields
+  include_medical: formData.includeMedical || false,
+  age: formData.age || null,
+  blood_group: formData.blood_group || null,
+  allergies: formData.allergies || null,
+  chronic_conditions: formData.chronic_conditions || null,
 
   // staff fields
   position: formData.position || null,
@@ -160,52 +176,7 @@ const { error: profileError } = await supabase.from("users").insert({
           ))}
         </div>
 
-        {/* Form */}
-        {/* <form onSubmit={handleSubmit} className="space-y-5">
-          <Input
-            type="text"
-            placeholder="Full Name"
-            icon={User}
-            value={formData.fullName}
-            onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-          />
-
-          <Input
-            type="email"
-            placeholder="Email"
-            icon={Mail}
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          />
-
-          <Input
-            type={showPassword ? "text" : "password"}
-            placeholder="Password"
-            icon={Lock}
-            showPasswordToggle={{
-              show: showPassword,
-              onToggle: () => setShowPassword(!showPassword),
-            }}
-            value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-          />
-
-          <Input
-            type={showPassword ? "text" : "password"}
-            placeholder="Confirm Password"
-            icon={Lock}
-            value={formData.confirmPassword}
-            onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-          />
-
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Creating account..." : "Create Account"}
-            {!isLoading && (
-              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-            )}
-          </Button>
-        </form> */}
-
+       
  {step === 1 && (
   <form
     onSubmit={(e) => {
@@ -264,7 +235,13 @@ const { error: profileError } = await supabase.from("users").insert({
       type="date"
       placeholder="Date of Birth"
       value={formData.dob}
-      onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
+      onChange={(e) => {
+        const dob = e.target.value;
+        const age = dob
+          ? Math.floor((new Date() - new Date(dob)) / (365.25 * 24 * 60 * 60 * 1000))
+          : "";
+        setFormData({ ...formData, dob, age });
+      }}
     />
 
     <select
@@ -283,6 +260,67 @@ const { error: profileError } = await supabase.from("users").insert({
       value={formData.address}
       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
     />
+
+    <Input
+      type="tel"
+      placeholder="Phone Number"
+      value={formData.phone}
+      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+    />
+
+    <div className="flex items-center gap-2">
+      <input
+        id="includeMedical"
+        type="checkbox"
+        checked={formData.includeMedical}
+        onChange={(e) => setFormData({ ...formData, includeMedical: e.target.checked })}
+        className="h-4 w-4"
+      />
+      <label htmlFor="includeMedical" className="text-sm text-gray-700">
+        Include medical record
+      </label>
+    </div>
+
+    {formData.includeMedical && (
+      <>
+        <Input
+          type="number"
+          placeholder="Age"
+          value={formData.age}
+          readOnly
+        />
+
+        <select
+          className="w-full h-11 border rounded-md px-3"
+          value={formData.blood_group}
+          onChange={(e) => setFormData({ ...formData, blood_group: e.target.value })}
+        >
+          <option value="">Select Blood Group</option>
+          <option value="A+">A+</option>
+          <option value="A-">A-</option>
+          <option value="B+">B+</option>
+          <option value="B-">B-</option>
+          <option value="AB+">AB+</option>
+          <option value="AB-">AB-</option>
+          <option value="O+">O+</option>
+          <option value="O-">O-</option>
+        </select>
+
+        <Input
+          type="text"
+          placeholder="Allergies (comma separated)"
+          value={formData.allergies}
+          onChange={(e) => setFormData({ ...formData, allergies: e.target.value })}
+        />
+
+        <Input
+          type="text"
+          placeholder="Chronic Conditions"
+          value={formData.chronic_conditions}
+          onChange={(e) => setFormData({ ...formData, chronic_conditions: e.target.value })}
+        />
+      </>
+    )}
 
     <div className="flex gap-2">
   <Button

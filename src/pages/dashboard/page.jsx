@@ -6,11 +6,15 @@ import { RecentActivitySection } from "../../components/dashboard/recent-activit
 import { Users, Calendar, Stethoscope, Clock, CheckCircle } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
+import { PatientsTable } from "../../components/patients/PatientsTable";
+import { AppointmentsList } from "../../components/appointments/appointments-list";
 
 export default function DashboardPage() {
   const [user, setUser] = useState(null);
   const [userAppointments, setUserAppointments] = useState([]);
   const [loadingAppointments, setLoadingAppointments] = useState(true);
+  const [totalPatients, setTotalPatients] = useState(null);
+  const [appointmentsToday, setAppointmentsToday] = useState(null);
   const { role } = useAuth();
 
   // Fetch authenticated user
@@ -76,6 +80,40 @@ export default function DashboardPage() {
 
     fetchAppointments();
   }, [user?.id, role]);
+
+  // Fetch staff summary stats (patients count, today's appointments)
+  useEffect(() => {
+    const fetchStaffStats = async () => {
+      if (role !== "staff") return;
+
+      try {
+        // total patients
+        const { count: patientCount } = await supabase
+          .from("patients")
+          .select("id", { count: "exact", head: true });
+
+        setTotalPatients(patientCount ?? 0);
+
+        // appointments today
+        const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+        const { data: apptsToday, error: apptErr } = await supabase
+          .from("appointments")
+          .select("id")
+          .eq("date", today);
+
+        if (apptErr) {
+          console.error("Error fetching today's appointments:", apptErr);
+          setAppointmentsToday(0);
+        } else {
+          setAppointmentsToday((apptsToday || []).length);
+        }
+      } catch (err) {
+        console.error("Error fetching staff stats:", err);
+      }
+    };
+
+    fetchStaffStats();
+  }, [role]);
 
   // ---------------- PATIENT DASHBOARD ----------------
   if (role === "patient") {
@@ -187,7 +225,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <SummaryCard
           title="Total Patients"
-          value=".."
+          value={totalPatients ?? "..."}
           description="Active patients in system"
           icon={<Users className="w-6 h-6" />}
           trend="+12% from last month"
@@ -195,10 +233,10 @@ export default function DashboardPage() {
         />
         <SummaryCard
           title="Appointments Today"
-          value=".."
+          value={appointmentsToday ?? "..."}
           description="Scheduled for today"
           icon={<Calendar className="w-6 h-6" />}
-          trend="2 pending confirmation"
+          trend="See appointment panel"
           trendUp={false}
         />
         <SummaryCard
@@ -209,6 +247,22 @@ export default function DashboardPage() {
           trend="All stations staffed"
           trendUp={true}
         />
+      </div>
+
+      {/* Staff panels: Patients and Appointments */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white border border-gray-200 rounded-lg shadow p-6">
+          <h2 className="text-xl font-bold text-text-primary mb-4">Patients</h2>
+          <PatientsTable />
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-lg shadow p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-text-primary">Recent Appointments</h2>
+            <a href="/dashboard/appointments" className="text-sm text-blue-600 hover:underline">View all</a>
+          </div>
+          <AppointmentsList />
+        </div>
       </div>
 
       {/* Recent Activity */}
