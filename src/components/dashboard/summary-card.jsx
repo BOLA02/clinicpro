@@ -1,5 +1,5 @@
-import React from "react";
-import { TrendingUp, TrendingDown } from "lucide-react"; // use lucide-react directly
+
+import { TrendingUp, TrendingDown } from "lucide-react"; 
 
 export function SummaryCard({ title, value, description, icon, trend, trendUp }) {
   return (

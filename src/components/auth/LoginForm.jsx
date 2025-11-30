@@ -188,27 +188,30 @@ export function LoginForm() {
 
         {/* Google Sign In Button */}
         <Button
-          type="button"
-          onClick={async () => {
-            setIsLoading(true);
-            const { error } = await supabase.auth.signInWithOAuth({
-              provider: "google",
-              options: {
-                redirectTo: `${window.location.origin}/dashboard`,
-              },
-            });
-            setIsLoading(false);
-            if (error) alert(error.message);
-          }}
-          className="w-full h-11 bg-white border border-gray-300 text-gray-900 hover:bg-gray-100"
-        >
-          <img
-            src="https://www.svgrepo.com/show/475656/google-color.svg"
-            alt="Google"
-            className="w-5 h-5 mr-2"
-          />
-          Sign in with Google
-        </Button>
+  type="button"
+  onClick={async () => {
+    setIsLoading(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: import.meta.env.VITE_SITE_URL + "/dashboard",
+
+      },
+    });
+    setIsLoading(false);
+    if (error) alert(error.message);
+  }}
+  className="w-full h-11 bg-primary hover:bg-primary-dark border border-gray-300 text-gray-900 hover:bg-gray-100 
+             flex items-center justify-center gap-2"
+>
+  <img
+    src="https://www.svgrepo.com/show/475656/google-color.svg"
+    alt="Google"
+    className="w-5 h-5"
+  />
+  <span className="text-sm font-medium">Sign in with Google</span>
+</Button>
+
       </div>
     </div>
   );

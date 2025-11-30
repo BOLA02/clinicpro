@@ -2,7 +2,7 @@ export default function Legend() {
   return (
     <div className="mt-6 flex gap-6 text-sm">
       <div className="flex items-center gap-2">
-        <div className="w-6 h-6 bg-blue-800 border border-blue-900 rounded"></div>
+        <div className="w-6 h-6 bg-primary/10 border border-blue-900 rounded"></div>
         <span className="text-text-secondary">Booked</span>
       </div>
       <div className="flex items-center gap-2">
