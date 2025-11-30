@@ -4,6 +4,22 @@ import TimeColumn from "./TimeColumn";
 export default function CalendarGrid({ weekDates, timeslots, getAppointment  }) {
   const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
+  // Helper function to convert 12-hour time to 24-hour format
+  function convertTo24Hour(timeStr) {
+    const [time, modifier] = timeStr.split(" ");
+    let [hours, minutes] = time.split(":");
+
+    if (modifier === "PM" && hours !== "12") {
+      hours = String(parseInt(hours) + 12);
+    }
+
+    if (modifier === "AM" && hours === "12") {
+      hours = "00";
+    }
+
+    return `${hours.padStart(2, "0")}:${minutes}`;
+  }
+
   return (
     <div className="overflow-x-auto">
       <div className="inline-block min-w-full">
@@ -12,11 +28,12 @@ export default function CalendarGrid({ weekDates, timeslots, getAppointment  }) 
           style={{ gridTemplateColumns: "80px repeat(7, 1fr)" }}
         >
           
+          {/* Header row - Time label */}
           <div className="bg-surface-hover p-3 font-semibold text-text-primary text-sm">
             Time
           </div>
 
-      
+          {/* Header row - Day names and dates */}
           {weekDates.map((date, i) => {
             const isToday = date.toDateString() === new Date().toDateString();
             return (
@@ -34,26 +51,34 @@ export default function CalendarGrid({ weekDates, timeslots, getAppointment  }) 
             );
           })}
 
-        
-          <TimeColumn timeslots={timeslots} />
+          {/* Body rows - Each timeslot creates a full row */}
+          {timeslots.map((time) => (
+            <>
+              {/* Time label cell */}
+              <div key={`time-${time}`} className="bg-surface-hover p-3 text-sm text-text-secondary flex items-center justify-center">
+                {time}
+              </div>
 
-         
-          {timeslots.map((time) =>
-            weekDates.map((date) => {
-              const appointment = getAppointment(date, time);
-              const now = new Date();
-              const slotDateTime = new Date(`${date.toISOString().split("T")[0]}T${time}:00`);
-              const isPast = slotDateTime < now;
+              {/* Day cells for this timeslot */}
+              {weekDates.map((date) => {
+                const appointment = getAppointment(date, time);
+                const now = new Date();
+                
+                // Convert time to 24-hour format for proper date construction
+                const time24 = convertTo24Hour(time);
+                const slotDateTime = new Date(`${date.toISOString().split("T")[0]}T${time24}:00`);
+                const isPast = slotDateTime < now;
 
-              return (
-                <DayCell
-                  key={`${date}-${time}`}
-                  appointment={appointment}
-                  isPast={isPast}
-                />
-              );
-            })
-          )}
+                return (
+                  <DayCell
+                    key={`${date}-${time}`}
+                    appointment={appointment}
+                    isPast={isPast}
+                  />
+                );
+              })}
+            </>
+          ))}
         </div>
       </div>
     </div>

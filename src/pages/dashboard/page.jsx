@@ -3,12 +3,10 @@
 import { useState, useEffect } from "react";
 import { SummaryCard } from "../../components/dashboard/summary-card";
 import { RecentActivitySection } from "../../components/dashboard/recent-activity";
-import { Users, Calendar, Clock, CheckCircle } from "lucide-react";
+import { Users, Calendar, Clock, CheckCircle, CalendarDays, AlertCircle } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
 import { PatientsTable } from "../../components/patients/PatientsTable";
-
-
 
 function LatestAppointmentPanel() {
   const [latest, setLatest] = useState(null);
@@ -83,14 +81,22 @@ function LatestAppointmentPanel() {
         </div>
         <p className="text-sm text-text-secondary mb-2">{latest.description || "No description"}</p>
         <div className="flex gap-4 text-sm text-text-secondary">
-          <span> {aptDateTime.toLocaleDateString()}</span>
-          <span> {aptDateTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+          <span className="flex items-center gap-1">
+            <CalendarDays className="w-4 h-4" />
+            {aptDateTime.toLocaleDateString()}
+          </span>
+          <span className="flex items-center gap-1">
+            <Clock className="w-4 h-4" />
+            {aptDateTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+          </span>
         </div>
         <div className="mt-3 text-sm text-text-secondary">
           <strong>Patient:</strong> {latest.patient?.user?.full_name || "-"} ({latest.patient?.user?.email || "-"})
         </div>
         {latest.staff && (
-          <div className="text-sm text-text-secondary"> <strong>Staff:</strong> {latest.staff.full_name} ({latest.staff.email})</div>
+          <div className="text-sm text-text-secondary">
+            <strong>Staff:</strong> {latest.staff.full_name} ({latest.staff.email})
+          </div>
         )}
       </div>
       <span
@@ -111,7 +117,6 @@ export default function DashboardPage() {
   const [totalPatients, setTotalPatients] = useState(null);
   const { role } = useAuth();
 
-  
   useEffect(() => {
     async function fetchUser() {
       const { data: { user }, error } = await supabase.auth.getUser();
@@ -134,7 +139,6 @@ export default function DashboardPage() {
 
       setLoadingAppointments(true);
 
-      
       const { data: patientData, error: patientError } = await supabase
         .from("patients")
         .select("id")
@@ -153,7 +157,6 @@ export default function DashboardPage() {
         return;
       }
 
-      
       const { data: appointments, error: appointmentsError } = await supabase
         .from("appointments")
         .select("*")
@@ -173,7 +176,6 @@ export default function DashboardPage() {
     fetchAppointments();
   }, [user?.id, role]);
 
- 
   useEffect(() => {
     const fetchStaffStats = async () => {
       if (role !== "staff") return;
@@ -247,10 +249,13 @@ export default function DashboardPage() {
           {loadingAppointments ? (
             <p className="text-text-secondary">Loading appointments...</p>
           ) : userAppointments.length === 0 ? (
-            <p className="text-text-secondary">
-              No appointments yet.{" "}
-              <a href="/dashboard/appointments" className="text-blue-600 hover:underline">Schedule one now</a>
-            </p>
+            <div className="flex items-center gap-2 text-text-secondary">
+              <AlertCircle className="w-5 h-5" />
+              <p>
+                No appointments yet.{" "}
+                <a href="/dashboard/appointments" className="text-blue-600 hover:underline">Schedule one now</a>
+              </p>
+            </div>
           ) : (
             <div className="space-y-3">
               {userAppointments.map((apt) => {
@@ -258,7 +263,7 @@ export default function DashboardPage() {
                 const isUpcoming = aptDateTime > new Date();
 
                 return (
-                  <div key={apt.id} className="border border-gray-200 rounded-lg p-4 flex items-start justify-between">
+                  <div key={apt.id} className="border border-gray-200 rounded-lg p-4 flex items-start justify-between hover:border-gray-300 transition-colors">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         {isUpcoming ? (
@@ -266,12 +271,18 @@ export default function DashboardPage() {
                         ) : (
                           <CheckCircle className="w-5 h-5 text-green-600" />
                         )}
-                        <h3 className="font-semibold text-text-primary">Appointment</h3>
+                        <h3 className="font-semibold text-text-primary">{apt.service || "Appointment"}</h3>
                       </div>
                       <p className="text-sm text-text-secondary mb-2">{apt.description || "No description"}</p>
                       <div className="flex gap-4 text-sm text-text-secondary">
-                        <span>📅 {aptDateTime.toLocaleDateString()}</span>
-                        <span>⏰ {aptDateTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                        <span className="flex items-center gap-1">
+                          <CalendarDays className="w-4 h-4" />
+                          {aptDateTime.toLocaleDateString()}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-4 h-4" />
+                          {aptDateTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </span>
                       </div>
                     </div>
                     <span

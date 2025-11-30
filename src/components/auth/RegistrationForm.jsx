@@ -30,7 +30,7 @@ function Button({ children, disabled, className = "", ...props }) {
   return (
     <button
       disabled={disabled}
-      className={`w-full h-11 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-all disabled:opacity-50 disabled:cursor-not-allowed group ${className}`}
+      className={`w-full h-11 flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark text-white font-medium rounded-md transition-all disabled:opacity-50 disabled:cursor-not-allowed group ${className}`}
       {...props}
     >
       {children}
@@ -167,7 +167,7 @@ const { error: profileError } = await supabase.from("users").insert({
               }}
               className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${
                 activeTab === tab
-                  ? "bg-blue-600 text-white shadow-md"
+                  ? "bg-primary hover:bg-primary-dark text-white shadow-md"
                   : "text-gray-500 hover:text-gray-900"
               }`}
             >
@@ -405,13 +405,14 @@ const { error: profileError } = await supabase.from("users").insert({
             const { error } = await supabase.auth.signInWithOAuth({
               provider: "google",
               options: {
-                redirectTo: "http://localhost:5173/dashboard",
+                redirectTo: import.meta.env.VITE_SITE_URL + "/dashboard",
+
               },
             });
             setIsLoading(false);
             if (error) alert(error.message);
           }}
-          className="bg-white border border-gray-300 text-gray-900 hover:bg-gray-100"
+          className="bg-primary hover:bg-primary-dark border border-gray-300 text-gray-900 hover:bg-gray-100"
         >
           <img
             src="https://www.svgrepo.com/show/475656/google-color.svg"

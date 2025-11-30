@@ -95,10 +95,23 @@ const getAppointment = (date, time) => {
 };
 
 
+ 
+  const previousWeek = () => {
+    setCurrentDate(prev => {
+      const newDate = new Date(prev);
+      newDate.setDate(newDate.getDate() - 7);
+      return newDate;
+    });
+  };
 
+  const nextWeek = () => {
+    setCurrentDate(prev => {
+      const newDate = new Date(prev);
+      newDate.setDate(newDate.getDate() + 7);
+      return newDate;
+    });
+  };
 
-  const previousWeek = () => setCurrentDate(prev => new Date(prev.setDate(prev.getDate() - 7)));
-  const nextWeek = () => setCurrentDate(prev => new Date(prev.setDate(prev.getDate() + 7)));
   const today = () => setCurrentDate(new Date());
 
   if (loading) return <p>Loading calendar...</p>;

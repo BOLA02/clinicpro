@@ -3,40 +3,7 @@
 
 import { Calendar, User, Clock } from "lucide-react"; 
 
-const recentActivities = [
-  {
-    id: 1,
-    type: "appointment",
-    patient: "John Smith",
-    action: "New appointment scheduled",
-    time: "2 hours ago",
-    icon: Calendar,
-  },
-  {
-    id: 2,
-    type: "patient",
-    patient: "Emma Johnson",
-    action: "Patient profile updated",
-    time: "4 hours ago",
-    icon: User,
-  },
-  {
-    id: 3,
-    type: "appointment",
-    patient: "Michael Brown",
-    action: "Appointment completed",
-    time: "6 hours ago",
-    icon: Clock,
-  },
-  {
-    id: 4,
-    type: "patient",
-    patient: "Sarah Davis",
-    action: "New patient registered",
-    time: "1 day ago",
-    icon: User,
-  },
-];
+
 
 export function RecentActivitySection() {
   const latestAppointment = recentActivities.find((a) => a.type === "appointment");
