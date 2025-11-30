@@ -1,128 +1,250 @@
-// ...existing code...
-# Clinic Dashboard — React + Vite
 
-A minimal clinic dashboard built with React and Vite. This project is a lightweight starter for building an admin/clinic UI with hot module replacement (HMR), basic linting, and a small set of example components.
+## Capstone Project Proposal
 
-This README provides quick start instructions, project layout, development tips, and notes about important files found in this repository.
+### Project Title
+**Clinic Dashboard — React + Vite + Supabase + Google Cloud**
 
-## Quick overview
+### Project Overview
+The Clinic Dashboard is a modern, responsive web application designed to **streamline patient management, staff scheduling, and appointment tracking** for healthcare facilities. Leveraging **React** with **Vite** for fast development, **Supabase** for a robust backend, and **Google Cloud** for secure authentication, this project demonstrates a professional, scalable solution for real-world clinic operations.
 
-- Stack: React + Vite
-- Styling: Utility-first classes (project uses token-like classnames such as `bg-surface`, `text-text-primary` — adapt to your design system or Tailwind)
-- Icons: lucide-react
-- Linting: ESLint (basic)
-- Language: JavaScript (TypeScript can be added; recommended for production)
+The system provides a **single source of truth** for administrators, doctors, and staff, enabling efficient clinic management and minimizing errors associated with manual record-keeping.
+
+### Motivation
+Many healthcare facilities struggle with fragmented or paper-based management of patients and staff. This project provides a **centralized digital solution** that is:
+
+- **Efficient:** Real-time access to patient and staff data  
+- **Scalable:** Extendable for multiple clinics or departments  
+- **User-friendly:** Intuitive, responsive UI for desktops and tablets  
+- **Secure:** Authentication with Google OAuth and Supabase security features  
+
+### Objectives
+1. Build a **user-friendly dashboard** displaying critical clinic information at a glance.  
+2. Enable **patient management** with creation, update, and history tracking.  
+3. Implement **staff management**, including role assignments, specializations, and availability.  
+4. Support **appointment scheduling** with real-time availability checks.  
+5. Ensure **data integrity** through properly structured database tables and foreign key relationships.  
+6. Showcase modern web technologies (**React, Supabase, Google Cloud**) in a practical healthcare application.  
+
+### Expected Outcomes
+- A **fully functional clinic management dashboard**  
+- Demonstrated proficiency with **modern frontend and backend technologies**  
+- A foundation for **future enhancements** such as AI-assisted patient triage, analytics dashboards, or mobile support  
+
+---
+
+## Table of Contents
+1. [Tech Stack](#tech-stack)  
+2. [Database Schema](#database-schema)  
+3. [Features](#features)  
+4. [Prerequisites](#prerequisites)  
+5. [Setup and Installation](#setup-and-installation)  
+6. [Project Structure](#project-structure)  
+7. [Scripts](#scripts)  
+8. [Google Cloud Integration](#google-cloud-integration)  
+9. [Development Tips](#development-tips)  
+10. [License](#license)  
+
+---
+
+## Tech Stack
+
+- **Frontend:** React + Vite  
+- **Backend/Database:** Supabase (PostgreSQL)  
+- **Authentication & API:** Google Cloud OAuth  
+- **Styling:** Tailwind CSS / utility-first classes  
+- **Icons:** lucide-react  
+- **Language:** JavaScript  
+
+---
+
+## Database Schema
+
+The application uses **five main tables** with nested foreign key relationships:
+
+### 1. `user`
+- `id` (PK)  
+- `full_name`  
+- `email`  
+- `password` (hashed)  
+- `role` (admin/staff)  
+- `created_at`  
+
+### 2. `patient`
+- `id` (PK)  
+- `full_name`  
+- `gender`  
+- `date_of_birth`  
+- `contact`  
+- `address`  
+- `created_by` (FK → `user.id`)  
+- `created_at`  
+
+### 3. `staff`
+- `id` (PK)  
+- `full_name`  
+- `role`  
+- `specialization_id` (FK → `specialization.id`)  
+- `contact`  
+- `created_by` (FK → `user.id`)  
+- `created_at`  
+
+### 4. `specialization`
+- `id` (PK)  
+- `name` (e.g., cardiology, pediatrics)  
+- `description`  
+
+### 5. `appointment`
+- `id` (PK)  
+- `patient_id` (FK → `patient.id`)  
+- `staff_id` (FK → `staff.id`)  
+- `date`  
+- `time`  
+- `status` (pending, confirmed, completed, cancelled)  
+
+### 6. `staff_availability`
+- `id` (PK)  
+- `staff_id` (FK → `staff.id`)  
+- `day_of_week`  
+- `start_time`  
+- `end_time`  
+
+---
+
+## Features
+
+- User authentication with **Supabase + Google OAuth**  
+- Patient management (create, edit, view, delete)  
+- Staff management with specializations and availability tracking  
+- Appointment scheduling with status management  
+- Nested database relationships for data integrity  
+- Responsive and interactive dashboard  
+- Modular React components for maintainability  
+
+---
 
 ## Prerequisites
 
-- Node.js 18+ (or latest LTS)
-- npm (bundled with Node) or pnpm/yarn if preferred
+- Node.js 18+  
+- npm 
+- Supabase project with database tables configured  
+- Google Cloud project with OAuth credentials  
 
-## Quick start (Windows)
+---
 
-1. Install dependencies:
-   ```powershell
-   npm install
-   ```
-2. Start dev server:
-   ```powershell
-   npm run dev
-   ```
-3. Build for production:
-   ```powershell
-   npm run build
-   ```
-4. Preview production build:
-   ```powershell
-   npm run preview
-   ```
+## Setup and Installation
 
-(Check package.json for additional scripts such as lint, format, or test.)
+1. **Clone the repository**
+```bash
+git clone [repo-url]
+cd clinicpro
+```
 
-## Project structure (typical)
+2. **Install dependencies**
+```bash
+npm install
+```
 
-- src/
-  - components/ — UI components and sections (e.g., dashboard widgets)
-    - dashboard/
-      - recent-activity.jsx — recent activity list component (example)
-  - pages/ or app/ — application routes / pages (depends on routing setup)
-  - styles/ — global CSS / design tokens
-  - main.jsx — app entry
-- public/ — static assets
-- index.html
-- package.json
-- vite.config.* — Vite configuration
-- .eslintrc.* — ESLint config
-- README.md
+3. **Configure environment variables**  
+Create a `.env` file:
+```
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_GOOGLE_CLIENT_ID=your_google_client_id
+VITE_GOOGLE_CLIENT_SECRET=your_google_client_secret
+```
 
-Example file: src/components/dashboard/recent-activity.jsx
-- Shows a RecentActivitySection component rendering a list of recent activities.
-- Uses lucide-react icons (Calendar, User, Clock) and utility classes for layout and colors.
+4. **Start development server**
+```bash
+npm run dev
+```
 
-## Notable files & components
+5. **Build for production**
+```bash
+npm run build
+```
 
-- src/components/dashboard/recent-activity.jsx
-  - Small, self-contained component demonstrating:
-    - icon usage with lucide-react
-    - mapping data to UI
-    - accessible markup and responsive layout with utility classes
 
-- vite.config.js / vite.config.ts
-  - Contains Vite plugins (commonly `@vitejs/plugin-react` or `@vitejs/plugin-react-swc`).
-  - Switch between Babel (plugin-react) or SWC (plugin-react-swc) for Fast Refresh/transform performance.
 
-## Enabling React Compiler / performance notes
+---
 
-The React Compiler (the new React compiler) is not enabled by default because it can affect dev and build performance. To enable, follow React's installation docs:
-https://react.dev/learn/react-compiler/installation
+## Project Structure
 
-If you want to use SWC for faster transform/build, consider `@vitejs/plugin-react-swc`.
+```
+.vscode/
+node_modules/
+public/
+src/
+ ├─ assets/
+ │   ├─ hero-hospital.png
+ │   ├─ react.svg
+ │   └─ theme.css
+ ├─ components/
+ │   ├─ appointments/
+ │   ├─ auth/
+ │   ├─ calender/
+ │   ├─ dashboard/
+ │   ├─ layout/
+ │   ├─ patients/
+ │   ├─ settings/
+ │   ├─ ui/
+ │   └─ other UI components (header, footer, hero, services)
+ ├─ context/
+ │   ├─ AuthContext.jsx
+ │   └─ ThemeContext.jsx
+ ├─ lib/
+ │   ├─ constants.js
+ │   └─ supabaseClient.js
+ ├─ pages/
+ │   ├─ dashboard/
+ │   ├─ landing/
+ │   ├─ login/
+ │   └─ register/
+ ├─ App.css
+ ├─ App.jsx
+ ├─ index.css
+ └─ main.jsx
+.env
+.gitignore
+eslint.config.js
+index.html
+package.json
+package-lock.json
+README.md
+vite.config.js
+```
 
-## ESLint and TypeScript
+---
 
-- This template includes a basic ESLint setup. For production apps, prefer TypeScript with type-aware linting.
-- To add TypeScript and `typescript-eslint`, see the TS template:
-  https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts
-  https://typescript-eslint.io
+## Scripts
 
-## Testing & CI
 
-- Add your preferred test runner (Vitest, Jest) depending on the codebase and patterns used.
-- Example: Vitest integrates well with Vite and React Testing Library.
+| `npm run dev` | Start development server with HMR |
+| `npm run build` | Build production bundle |
 
-## Common development tips
 
-- Use the dev server (npm run dev) for fast feedback and HMR.
-- Keep components small and focused; use the components/ folder for reusable UI.
-- Centralize design tokens (colors, spacing) in a styles or tokens file to avoid scattered magic classes.
-- When adding TypeScript later, convert one folder at a time and enable `@typescript-eslint` rules gradually.
+---
 
-## Contributing
+## Google Cloud Integration
 
-1. Fork the repo and create a branch for your feature/fix.
-2. Run the app locally and ensure linting/tests pass.
-3. Open a PR with a short description and screenshots (if UI change).
+- Enable OAuth credentials in **Google Cloud Console**  
+- Use client ID and secret in `.env`  
+- Connect with **Supabase auth** for Google login  
+
+---
+
+## Development Tips
+
+- Keep components **small and reusable**  
+- Centralize Tailwind **design tokens**  
+- Use **Supabase hooks** for reactive data fetching  
+- Test foreign key relationships carefully  
+- Modular dashboard widgets (`summary-card`, `recent-activity`) improve maintainability  
+
+---
+
+
 
 ## License
 
-Specify a license (e.g., MIT) in LICENSE file.
+Specify a license (e.g., MIT) in LICENSE file  
 
-## Troubleshooting
-
-- If dev server fails to start, ensure Node and npm versions meet prerequisites.
-- For icon issues, ensure `lucide-react` is installed:
-  ```powershell
-  npm install lucide-react
-  ```
-- If styles are missing, ensure global CSS or Tailwind setup is configured and imported in the app entry.
-
-## Where to look next
-
-- src/ — main development area; explore components and pages.
-- package.json — available scripts and dependency list.
-- vite.config.* — plugin choices and build options.
-
-This README is intentionally concise. If you want, I can:
-- generate a full project tree from the workspace,
-- add detailed setup for TypeScript + ESLint,
-- or update package.json scripts and lint configuration.
