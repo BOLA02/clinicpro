@@ -6,7 +6,7 @@ import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { supabase } from "../../lib/supabaseClient";
-
+import 'dotenv/config'
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
