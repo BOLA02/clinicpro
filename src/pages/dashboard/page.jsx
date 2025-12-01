@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { SummaryCard } from "../../components/dashboard/summary-card";
-import { RecentActivitySection } from "../../components/dashboard/recent-activity";
+// import { RecentActivitySection } from "../../components/dashboard/recent-activity";
 import { Users, Calendar, Clock, CheckCircle, CalendarDays, AlertCircle } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
@@ -340,7 +340,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Recent Activity */}
-      <RecentActivitySection />
+      {/* <RecentActivitySection /> */}
     </div>
   );
 }
