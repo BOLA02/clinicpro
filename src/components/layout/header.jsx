@@ -45,7 +45,7 @@ export function Header({ onMenuClick }) {
       <div className="flex items-center gap-4 flex-1">
         <button
           onClick={onMenuClick}
-          className="text-text-primary hover:bg-surface-hover p-2 rounded-lg transition-colors md:hidden"
+          className="text-text-primary hover:bg-blue-600 p-2 rounded-lg transition-colors md:hidden"
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -62,10 +62,7 @@ export function Header({ onMenuClick }) {
 
       {/* Right Side - Icons & Profile */}
       <div className="flex items-center gap-4">
-        <button className="text-text-primary hover:bg-surface-hover p-2 rounded-lg transition-colors relative">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
-        </button>
+       
 
         {/* Profile Dropdown */}
         <div className="relative">
@@ -95,13 +92,7 @@ export function Header({ onMenuClick }) {
 
           {showProfileMenu && (
             <div className="absolute right-0 mt-2 w-48 bg-surface border border-border rounded-lg shadow-lg z-50">
-              <Link
-                to="/dashboard/settings"
-                className="flex items-center gap-3 px-4 py-3 text-text-primary hover:bg-surface-hover transition-colors first:rounded-t-lg"
-              >
-                <User className="w-4 h-4" />
-                <span className="text-sm">Profile</span>
-              </Link>
+              
               <Link
                 to="/dashboard/settings"
                 className="flex items-center gap-3 px-4 py-3 text-text-primary hover:bg-surface-hover transition-colors"

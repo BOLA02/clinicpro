@@ -5,16 +5,12 @@ import { useState, useEffect } from "react";
 
 import { Input } from "../ui/input";
 import { supabase } from "../../lib/supabaseClient";
-import { services as SERVICES_LIST } from "../services";
+import { services } from "../../lib/constants";
+import { TIMESLOTS } from "../../lib/constants";
 import { Toast } from "../ui/toast";
 
-const TIMESLOTS = [
-  "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
-  "12:00", "12:30", "13:00", "13:30", "14:00", "14:30",
-  "15:00", "15:30", "16:00", "16:30",
-];
 
-export function ScheduleAppointmentModal({ isOpen, onClose }) {
+export function ScheduleAppointmentModal({ isOpen, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
     date: "",
     service: "",
@@ -49,7 +45,6 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
         setUser(user);
       }
     };
-
     if (isOpen) fetchUser();
   }, [isOpen, onClose]);
 
@@ -192,12 +187,14 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
         patient = newPatient;
       }
 
+      const staffId = formData.staff_id === "" ? null : formData.staff_id;
+
       const { data: existing, error: existErr } = await supabase
         .from("appointments")
         .select("id")
         .eq("date", formData.date)
         .eq("time", formData.slot)
-        .eq("staff_id", formData.staff_id || null)
+        .eq("staff_id", staffId)
         .limit(1);
 
       if (existErr) throw existErr;
@@ -213,10 +210,10 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
           patient_id: patient.id,
           date: formData.date,
           time: formData.slot,
-          description: formData.description,
+          description: formData.description || null,
           service: formData.service,
           mode: formData.mode,
-          staff_id: formData.staff_id || null,
+          staff_id: staffId,
         });
 
       if (appointmentError) throw appointmentError;
@@ -224,11 +221,30 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
       showToast("success", "Appointment scheduled successfully!");
       
       setTimeout(() => {
-        onClose();
-      }, 2000);
+        if (onSuccess) {
+          onSuccess(); 
+        } else {
+          onClose();
+        }
+      }, 1500);
     } catch (err) {
-      console.error("Error scheduling appointment:", err.message);
-      showToast("error", err.message || "Failed to schedule appointment. Please try again.");
+      console.error("Error scheduling appointment:", err);
+      
+      let errorMessage = "Failed to schedule appointment. Please try again.";
+      
+      if (err.message?.includes("uuid")) {
+        errorMessage = "There was an issue with the staff selection. Please try again.";
+      } else if (err.message?.includes("duplicate")) {
+        errorMessage = "This appointment slot is already taken. Please select another time.";
+      } else if (err.message?.includes("foreign key")) {
+        errorMessage = "Invalid selection. Please refresh the page and try again.";
+      } else if (err.message?.includes("network")) {
+        errorMessage = "Network error. Please check your connection and try again.";
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      showToast("error", errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -247,7 +263,7 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
         <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
           {/* Header with gradient */}
-          <div className="relative bg-gradient-to-r from-blue-600 to-purple-600 p-6">
+          <div className="relative bg-[#0ea5e9] p-3">
             <button 
               onClick={onClose} 
               className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg"
@@ -332,7 +348,7 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
                 required
               >
                 <option value="">Select a service</option>
-                {SERVICES_LIST.map((s, i) => (
+                {services.map((s, i) => (
                   <option key={i} value={s.title}>{s.title}</option>
                 ))}
               </select>
@@ -343,7 +359,7 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
                   <User className="w-4 h-4 text-blue-600" />
-                  Choose Specialist <span className="text-gray-400 text-xs font-normal">(Optional)</span>
+                  Choose Specialist 
                 </label>
                 <select
                   className="w-full h-12 pl-4 pr-10 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all bg-white dark:bg-gray-800 appearance-none cursor-pointer"
@@ -440,7 +456,7 @@ export function ScheduleAppointmentModal({ isOpen, onClose }) {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all font-medium shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-6 py-3 bg-[#0ea5e9] text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all font-medium shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <span className="flex items-center justify-center gap-2">

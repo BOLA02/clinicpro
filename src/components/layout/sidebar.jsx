@@ -55,15 +55,15 @@ export function Sidebar({ open, onToggle }) {
       <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
         {open && (
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-primary rounded-lg">
-              <Heart className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-bold text-text-primary text-lg">PCMA</span>
+            
+            <img src="/clinic-pro.png" alt="" />
+            
+            
           </div>
         )}
         <button
           onClick={onToggle}
-          className="text-sidebar-foreground hover:bg-sidebar-accent-foreground hover:bg-opacity-10 p-2 rounded-lg transition-colors"
+          className="text-sidebar-foreground hover:bg-blue-600 hover:bg-opacity-10 p-2 rounded-lg transition-colors"
         >
           {open ? <ChevronLeft className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
         </button>

@@ -4,6 +4,12 @@ import { AppointmentsCalendar } from "../../../components/appointments/appointme
 
 export default function AppointmentsPage() {
   const [showModal, setShowModal] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const handleAppointmentCreated = () => {
+    setShowModal(false);
+    setRefreshTrigger(prev => prev + 1); 
+  };
 
   return (
     <div>
@@ -18,9 +24,13 @@ export default function AppointmentsPage() {
       </div>
 
       {/* Calendar View */}
-      <AppointmentsCalendar />
+      <AppointmentsCalendar key={refreshTrigger} refreshTrigger={refreshTrigger} />
 
-      <ScheduleAppointmentModal isOpen={showModal} onClose={() => setShowModal(false)} />
+      <ScheduleAppointmentModal 
+        isOpen={showModal} 
+        onClose={() => setShowModal(false)}
+        onSuccess={handleAppointmentCreated}
+      />
     </div>
   );
 }

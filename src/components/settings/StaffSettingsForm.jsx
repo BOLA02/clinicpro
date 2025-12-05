@@ -3,24 +3,12 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../context/AuthContext";
-import { services } from "../services";
+import {  services} from "../../lib/constants";
 import { Plus, Trash2, Save } from "lucide-react";
+import { TIMESLOTS, DAYS_OF_WEEK} from "../../lib/constants"
+import { Toast } from "../ui/toast";
 
-const DAYS_OF_WEEK = [
-  { id: 1, name: "Monday" },
-  { id: 2, name: "Tuesday" },
-  { id: 3, name: "Wednesday" },
-  { id: 4, name: "Thursday" },
-  { id: 5, name: "Friday" },
-  { id: 6, name: "Saturday" },
-  { id: 0, name: "Sunday" },
-];
 
-const TIMESLOTS = [ 
-  "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
-  "12:00", "12:30", "13:00", "13:30", "14:00", "14:30",
-  "15:00", "15:30", "16:00", "16:30",
-];
 
 export function StaffSettingsForm() {
   const { user, role } = useAuth();
@@ -28,7 +16,9 @@ export function StaffSettingsForm() {
   const [availability, setAvailability] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
+  const [toast, setToast] = useState(null); 
+
+
 
   // Fetch current staff settings
   useEffect(() => {
@@ -72,7 +62,8 @@ export function StaffSettingsForm() {
         setAvailability(availMap);
       } catch (err) {
         console.error("Error fetching settings:", err);
-        setMessage("Error loading settings");
+        setToast({ type: "error", message: "Error loading settings" });
+
       } finally {
         setLoading(false);
       }
@@ -169,11 +160,11 @@ export function StaffSettingsForm() {
         if (availErr) throw availErr;
       }
 
-      setMessage("Settings saved successfully!");
-      setTimeout(() => setMessage(""), 3000);
+      setToast({ type: "success", message: "Settings saved successfully!" });
+      
     } catch (err) {
       console.error("Error saving settings:", err);
-      setMessage("Error saving settings");
+      setToast({ type: "error", message: "Error saving settings" });
     } finally {
       setSaving(false);
     }
@@ -189,16 +180,20 @@ export function StaffSettingsForm() {
 
   return (
     <div className="space-y-8">
+      {toast && (
+          <Toast 
+            type={toast.type} 
+            message={toast.message} 
+            onClose={() => setToast(null)} 
+          />
+        )}
+
       <div>
         <h1 className="text-3xl font-bold text-text-primary mb-2">Staff Settings</h1>
         <p className="text-text-secondary">Manage your specializations and availability</p>
       </div>
 
-      {message && (
-        <div className={`p-4 rounded-lg ${message.includes("successfully") ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
-          {message}
-        </div>
-      )}
+     
 
       {/* Specializations Section */}
       <div className="bg-white border border-gray-200 rounded-lg shadow p-6">

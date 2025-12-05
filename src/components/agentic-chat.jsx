@@ -11,7 +11,7 @@ export function AgenticChat() {
   const [messages, setMessages] = useState([
     {
       id: "1",
-      text: "Hello! I'm PCMA Assistant. How can I help you today? I can help with appointment scheduling, answer medical questions, or provide health recommendations.",
+      text: "Hello! I'm Clinic Pro Assistant. How can I help you today? I can help with appointment scheduling, answer medical questions, or provide health recommendations.",
       sender: "bot",
       timestamp: new Date(),
     },
@@ -119,7 +119,7 @@ const messagesEndRef = useRef(null);
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-border bg-primary/10">
             <div>
-              <h3 className="font-semibold text-foreground">PCMA Assistant</h3>
+              <h3 className="font-semibold text-foreground">Clinic Pro Assistant</h3>
               <p className="text-xs text-foreground/60">AI-Powered Support</p>
             </div>
             <button
