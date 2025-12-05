@@ -10,10 +10,11 @@ export function Footer() {
           {/* Brand */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-primary">
-                <Heart className="w-5 h-5 text-white" />
-              </div>
-              <span className="font-semibold text-text-primary">HealthCare</span>
+              <img 
+                  src="/clinic-pro.png" 
+                  alt="Modern clinic interior with medical professionals"
+                  className=" h-12  "
+                />
             </div>
             <p className="text-sm text-text-tertiary">
               Providing compassionate healthcare to our community since 2015.

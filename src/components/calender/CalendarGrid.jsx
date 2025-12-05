@@ -1,6 +1,6 @@
 import DayCell from "./DayCell";
 import TimeColumn from "./TimeColumn";
-
+import React from "react";
 export default function CalendarGrid({ weekDates, timeslots, getAppointment  }) {
   const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -53,7 +53,7 @@ export default function CalendarGrid({ weekDates, timeslots, getAppointment  }) 
 
           {/* Body rows - Each timeslot creates a full row */}
           {timeslots.map((time) => (
-            <>
+            <React.Fragment key={`row-${time}`}>
               {/* Time label cell */}
               <div key={`time-${time}`} className="bg-surface-hover p-3 text-sm text-text-secondary flex items-center justify-center">
                 {time}
@@ -77,7 +77,7 @@ export default function CalendarGrid({ weekDates, timeslots, getAppointment  }) 
                   />
                 );
               })}
-            </>
+            </React.Fragment>
           ))}
         </div>
       </div>

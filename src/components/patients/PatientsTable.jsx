@@ -1,6 +1,5 @@
 "use client";
 
-import { MoreVertical, Trash2 } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient";
 
@@ -102,7 +101,7 @@ const fetchPatients = useCallback(async () => {
       };
     });
 
-    // Remove nulls (staff links) and sort by last_visit DESC (null last)
+    // Remove nulls staff links and sort by last_visit 
     const filtered = transformed.filter(Boolean);
 
     filtered.sort((a, b) => {
@@ -146,10 +145,8 @@ const fetchPatients = useCallback(async () => {
           <tr>
             <th className="px-6 py-4 text-left">Name</th>
             <th className="px-6 py-4 text-left">Gender</th>
-            <th className="px-6 py-4 text-left">Age</th>
-            <th className="px-6 py-4 text-left">Contact</th>
-            <th className="px-6 py-4 text-left">Last Visit</th>
-            <th className="px-6 py-4 text-right">Actions</th>
+            <th className="px-6 py-4 text-left">Email</th>
+           
           </tr>
         </thead>
         <tbody>
@@ -157,12 +154,8 @@ const fetchPatients = useCallback(async () => {
             <tr key={patient.id} className="hover:bg-surface-hover">
               <td className="px-6 py-4">{patient.full_name}</td>
               <td className="px-6 py-4">{patient.gender}</td>
-              <td className="px-6 py-4">{patient.age}</td>
-              <td className="px-6 py-4">{patient.contact}</td>
-              <td className="px-6 py-4">{patient.last_visit}</td>
-              <td className="px-6 py-4 text-right">
-                <MoreVertical className="w-4 h-4 cursor-pointer" />
-              </td>
+              <td className="px-6 py-4">{patient.email}</td>
+              
             </tr>
           ))}
         </tbody>

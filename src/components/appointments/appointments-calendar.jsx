@@ -45,7 +45,7 @@ export function AppointmentsCalendar() {
         setAppointments(flattenedData);
 
         if (flattenedData.length > 0) {
-          console.log(flattenedData[0].patient_name);
+         
         }
 
       } catch (e) {

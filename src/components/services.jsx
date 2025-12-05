@@ -1,82 +1,112 @@
-// Custom SVG Icons (replacing Lucide)
-const HeartIcon = () => (
-  <svg className="w-6 h-6" fill="#35a5e9" viewBox="0 0 24 24">
-    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-  </svg>
-);
+import { Link } from "react-router-dom";
 
-const BrainIcon = () => (
-  <svg className="w-6 h-6" fill="#35a5e9" viewBox="0 0 24 24">
-    <path d="M12 2C8.13 2 5 5.13 5 9c0 1.86.72 3.56 1.9 4.83.33.35.52.81.52 1.3v1.37c0 .55.45 1 1 1h1v2c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-2h1c.55 0 1-.45 1-1v-1.37c0-.49.19-.95.52-1.3C18.28 12.56 19 10.86 19 9c0-3.87-3.13-7-7-7zm-3 13H8v-1h1v1zm0-3H8V9h1v3zm4 3h-1v-1h1v1zm0-3h-1V9h1v3z" />
-  </svg>
-);
-
-const ActivityIcon = () => (
-  <svg className="w-6 h-6" fill="#35a5e9" viewBox="0 0 24 24">
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-  </svg>
-);
-
-const EyeIcon = () => (
-  <svg className="w-6 h-6" fill="#35a5e9" viewBox="0 0 24 24">
-    <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
-  </svg>
-);
-
-export const services = [
+export const servicesList = [
   {
-    icon: HeartIcon,
-    title: "Cardiology",
-    description: "Expert heart care and preventive cardiovascular services for all ages.",
+    title: "Prescription Drugs Dispensing",
+    description: "Convenient Prescription Dispensing Services at Lakeshore gimli medical clinic",
+    img: "/Rectangle 7.png",
   },
   {
-    icon: BrainIcon,
-    title: "Neurology",
-    description: "Comprehensive neurological treatments and specialized brain care.",
+    title: "Medication Review",
+    description: "Optimize Your Health with Medication Review at Lakeshore gimli medical clinic",
+    img: "/Rectangle 7 (4).png",
   },
   {
-    icon: ActivityIcon,
-    title: "General Practice",
-    description: "Routine checkups, preventive care, and general health management.",
+    title: "Over-the-Counter Medications",
+    description: "Discover a Wide Range of Over-the-Counter Medications at Lakeshore gimli medical clinic",
+    img: "/Rectangle 7 (1).png",
   },
   {
-    icon: EyeIcon,
-    title: "Ophthalmology",
-    description: "Vision care, eye exams, and advanced eye treatment options.",
+    title: "Unit-dosage Packaging",
+    description: "Convenient and Reliable Unit-Dosage Packaging at Lakeshore gimli medical clinic",
+    img: "/Rectangle 7 (3).png",
+  },
+  {
+    title: "Vaccinations and Injections of Medications",
+    description: "Comprehensive Vaccinations and Injection Services at Lakeshore gimli medical clinic",
+    img: "/Rectangle 7 (2).png",
+  },
+  {
+    title: "Free City-Wide Delivery",
+    description: "Convenient and Reliable Free City-Wide Delivery from Lakeshore gimli medical clinic",
+    img: "/Rectangle 7 (5).png",
   },
 ];
 
-export function Services() {
+export const Services = () => {
   return (
-    <section id="services" className="py-20 sm:py-32 bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-16 space-y-4">
-          <h2 className="text-4xl sm:text-5xl font-bold text-text-primary">Our Services</h2>
-          <p className="text-xl text-text-tertiary max-w-2xl mx-auto">
-            Comprehensive medical services delivered by experienced healthcare professionals.
-          </p>
-        </div>
+    <>
+      <section className="py-10 md:py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4">
+          {/* Header */}
+          <div className="flex flex-col md:flex-row justify-between items-center mb-8 md:mb-12 gap-4">
+            <h2 className="text-center md:text-left text-2xl md:text-3xl font-semibold">
+              Our Medical Services
+            </h2>
+            <div className="text-center md:text-right">
+              <p className="text-sm mb-2 md:mb-0">
+                We provide a full range of medical services - <br /> 
+                from consultation to diagnosis and treatment
+              </p>
+              <a href="/login" className="text-sm text-[#2f80ed]">
+                See all services
+              </a>
+            </div>
+          </div>
 
-        {/* Services Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {services.map((service, i) => {
-            const Icon = service.icon;
-            return (
+          {/* Services Grid */}
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {servicesList.map((item, i) => (
               <div
                 key={i}
-                className="group cursor-pointer p-6 bg-surface rounded-xl border border-border shadow-sm hover:shadow-lg transition-all duration-300"
+                className="bg-white rounded-lg shadow p-4 hover:shadow-md flex flex-col"
               >
-                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition mb-4">
-                  <Icon className="text-[#35a5e9]" />
+                <div className="w-full h-40 sm:h-44 rounded-md overflow-hidden">
+                  <img
+                    src={item.img}
+                    alt={item.title}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-                <h3 className="font-semibold text-lg mb-2 text-text-primary">{service.title}</h3>
-                <p className="text-sm text-text-tertiary">{service.description}</p>
+
+                <h3 className="text-lg font-semibold mt-3">{item.title}</h3>
+                <p className="text-gray-600 text-sm mt-1 flex-1">{item.description}</p>
+                <button className="text-blue-600 text-sm mt-3 self-start">Read more</button>
               </div>
-            );
-          })}
+            ))}
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-10 px-4">
+        <div className="bg-[#d5e6fb] rounded-lg flex flex-col-reverse lg:flex-row items-center gap-6 p-6 lg:p-10">
+          {/* Text */}
+          <div className="flex-1 text-center lg:text-left">
+            <h2 className="text-2xl md:text-3xl font-semibold mb-2">
+              Visit Clinic Pro today and experience the difference!
+            </h2>
+            <p className="text-sm mb-4">
+              Join over 4,000+ startups already growing with Untitled.
+            </p>
+            <Link
+              to="/login"
+              className="bg-[#0ea5e9] text-white px-6 py-2 rounded-lg shadow hover:bg-[#0284c7] transition"
+            >
+              Get in touch
+            </Link>
+          </div>
+
+          {/* Image */}
+          <div className="flex-1 w-full max-w-xs lg:max-w-full">
+            <img
+              src="/patient.png"
+              alt="Patient illustration"
+              className="w-full h-auto mx-auto lg:mx-0"
+            />
+          </div>
+        </div>
+      </section>
+    </>
   );
-}
+};
