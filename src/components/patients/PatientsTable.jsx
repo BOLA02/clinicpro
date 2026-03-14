@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient";
 
 export function PatientsTable() {
-  const [expandedRow, setExpandedRow] = useState(null);
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -14,7 +13,7 @@ export function PatientsTable() {
     const diff = Date.now() - new Date(dob).getTime();
     return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
   };
-
+ 
 const fetchPatients = useCallback(async () => {
   setLoading(true);
   setError(null);
@@ -124,13 +123,10 @@ const fetchPatients = useCallback(async () => {
   useEffect(() => {
     fetchPatients();
 
-    const channel = supabase
-      .channel("patients-changes")
-      .on("postgres_changes",
-        { event: "*", schema: "public", table: "patients" },
-        () => fetchPatients()
-      )
-      .subscribe();
+    const channel = supabase.channel("patients-changes").on("postgres_changes",{ 
+      event: "*", 
+      schema: "public", 
+      table: "patients"}, () => fetchPatients()).subscribe();
 
     return () => supabase.removeChannel(channel);
   }, [fetchPatients]);
