@@ -1,9 +1,9 @@
 
 ## Capstone Project Proposal
 
-### Project Title
+### 
 **Clinic Dashboard — React + Vite + Supabase + Google Cloud**
-
+kameel
 ### Project Overview
 The Clinic Dashboard is a modern, responsive web application designed to **streamline patient management, staff scheduling, and appointment tracking** for healthcare facilities. Leveraging **React** with **Vite** for fast development, **Supabase** for a robust backend, and **Google Cloud** for secure authentication, this project demonstrates a professional, scalable solution for real-world clinic operations.
 
